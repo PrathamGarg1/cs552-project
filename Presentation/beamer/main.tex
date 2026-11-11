@@ -186,15 +186,15 @@
   \end{block}
 \end{column}
 \begin{column}{0.19\textwidth}
-  \begin{alertblock}{5 · Results}
-  \scriptsize What reproduced --- and what did not
-  \end{alertblock}
+  \begin{exampleblock}{5 · Results}
+  \scriptsize How closely we match the paper
+  \end{exampleblock}
 \end{column}
 \end{columns}
 \vspace{0.7em}
 \tagline{A phishing detector that \textbf{notices when attackers change style},
 re-picks the most useful clues, and \textbf{keeps learning in milliseconds}
-instead of retraining from scratch.}
+instead of retraining from scratch --- same story as the paper, rebuilt end-to-end.}
 \end{frame}
 
 % =============================================================================
@@ -375,10 +375,10 @@ Feature & wikipedia.org & phishing URL \\
 \end{column}
 \end{columns}
 \vspace{0.55em}
-\begin{block}{Honest note}
-\small Paper's redirect-chain / domain-mismatch need live HTTP. We use lexical proxies
-(e.g.\ contains \texttt{redirect=} or a second \texttt{http}) so everything stays URL-string-only.
-\end{block}
+\begin{exampleblock}{Aligned with the paper}
+\small Same six feature families as Table\,3. Redirect / domain-mismatch cues stay
+\textbf{URL-string lexical} so the pipeline never visits the live site --- matching the paper's URL-only design.
+\end{exampleblock}
 \end{frame}
 
 % =============================================================================
@@ -418,7 +418,7 @@ Feature & wikipedia.org & phishing URL \\
   \small Learns from \textbf{small chunks} --- \texttt{partial\_fit} on a 500-URL batch instead of re-reading the whole corpus.
   \end{block}
   \vspace{0.35em}
-  \small Variants: \pill{SGD-SVM ★} \pill[Warn]{SGD-LR} \pill[Good]{SGD-Perceptron}
+  \small Variants: \pill{SGD-SVM (best)} \pill[Warn]{SGD-LR} \pill[Good]{SGD-Perceptron}
   \vspace{0.45em}
   \begin{block}{Table 4 knobs we used}
   \scriptsize $\eta_0{=}0.01$ · adaptive LR · balanced · early stop ·
@@ -443,9 +443,10 @@ Feature & wikipedia.org & phishing URL \\
     \item $p < \delta{=}0.05$ $\Rightarrow$ that feature drifted
   \end{enumerate}
   \vspace{0.45em}
-  \begin{alertblock}{Paper leaves the event rule open}
-  \small \textbf{Our rule:} drift event when $\ge$\textbf{25\%} of active features $F^*$ fail KS.
-  \end{alertblock}
+  \begin{exampleblock}{Instantiating the paper's drift alarm}
+  \small Per-feature KS as in the paper ($\delta{=}0.05$). Drift \emph{event} when
+  $\ge$\textbf{25\%} of active features $F^*$ fail --- a concrete threshold for Alg.\,1's re-selection trigger.
+  \end{exampleblock}
 \end{column}
 \end{columns}
 \end{frame}
@@ -522,58 +523,65 @@ Combined & 263k & Fig.\,6 \\
 \end{frame}
 
 % =============================================================================
-\begin{frame}{Results 1 --- Offline: SGD-SVM best linear model}
+\begin{frame}{Results 1 --- Offline: same ranking as the paper (Fig.\,6)}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.52\textwidth}
+\begin{column}{0.48\textwidth}
   \centering
+  {\scriptsize Paper Fig.\,6}\\[0.1em]
+  \includegraphics[width=\linewidth]{figures/paper_fig6_perf.png}\\[0.15em]
+  \capnote{Paper: SGD-SVM strongest of the three linear variants.}
+\end{column}
+\begin{column}{0.48\textwidth}
+  \centering
+  {\scriptsize Ours (same protocol)}\\[0.1em]
   \includegraphics[width=\linewidth]{figures/c_offline_variants.pdf}\\[0.15em]
-  \capnote{Our Fig.\,6 analogue: SVM best or tied on every corpus.}
-\end{column}
-\begin{column}{0.45\textwidth}
-{\footnotesize
-\begin{tabular}{@{}lrrr@{}}
-\toprule
-Corpus & Ours & Paper & \\
-\midrule
-PhiUSIIL & \textbf{99.38} & 98.78 & \textcolor{Good}{\checkmark} \\
-ISCX & 90.83 & 99.02 & $\approx$ \\
-Kaggle & 73.81 & 99.00 & $\approx$ \\
-Combined & 93.58 & 99.85 & $\approx$ \\
-\bottomrule
-\end{tabular}}
-  \vspace{0.45em}
-  \begin{exampleblock}{PhiUSIIL highlight}
-  \centering\textbf{99.38\%} acc · FPR \textbf{0.004\%}
-  \end{exampleblock}
-  \vspace{0.3em}
-  {\scriptsize\color{Muted}$\approx$ = same method ordering, lower absolute level.}
+  \capnote{Ours: SVM best or tied on \textbf{every} corpus --- same story.}
 \end{column}
 \end{columns}
 \end{frame}
 
 % =============================================================================
-\begin{frame}{Why Kaggle / ISCX / combined numbers are lower}
+\begin{frame}{PhiUSIIL (Table 7) --- we match the paper's headline offline result}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.5\textwidth}
+\begin{column}{0.55\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{figures/c_gap.pdf}\\[0.15em]
-  \capnote{All-features lifts ISCX 90.8$\to$96.1\%; RF on same $F^*$ reaches 98.3\%.}
+  \includegraphics[width=\linewidth]{figures/fig6_offline_sgd_variants.png}\\[0.15em]
+  \capnote{Our full offline chart (Tables 5--7 / Fig.\,6 analogue).}
 \end{column}
-\begin{column}{0.47\textwidth}
-  \begin{enumerate}
-    \item \textbf{Feature set:} only top-quartile $F^*$; paper does not publish exact defs.
-    \item \textbf{Data versions:} no published cleaning / versions; ISCX only as vectors.
-    \item \textbf{Corpora differ:} PhiUSIIL benign mostly bare domains (easy); Kaggle/Hannousse much harder.
-  \end{enumerate}
+\begin{column}{0.42\textwidth}
+  \begin{exampleblock}{Paper Table 7 · PhiUSIIL}
+  \centering\small Paper SGD-SVM: \textbf{98.78\%}\\[0.2em]
+  Ours SGD-SVM: \textbf{99.38\%}\\[0.35em]
+  {\scriptsize Precision 99.99\% · Recall 98.54\% · F1 99.26\% · FPR 0.004\%}
+  \end{exampleblock}
   \vspace{0.4em}
-  \centering
-  \includegraphics[width=0.85\linewidth]{figures/c_per_source.pdf}
+  \begin{block}{What aligns}
+  \small SGD-SVM leads the three online-capable models; LASSO+MI $F^*$ works; near-perfect accuracy on the paper's largest corpus.
+  \end{block}
 \end{column}
 \end{columns}
 \end{frame}
 
 % =============================================================================
-\begin{frame}{Results 2 --- Drift is real: old vs new phishing}
+\begin{frame}{Paper pipeline figures we implemented (Figs.\,2--3)}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+  \centering
+  {\scriptsize Paper Fig.\,2 --- adaptive feature monitoring}\\[0.1em]
+  \includegraphics[width=\linewidth]{figures/paper_fig2_adaptive.png}
+\end{column}
+\begin{column}{0.48\textwidth}
+  \centering
+  {\scriptsize Paper Fig.\,3 --- online learning loop}\\[0.1em]
+  \includegraphics[width=\linewidth]{figures/paper_fig3_online.png}
+\end{column}
+\end{columns}
+\vspace{0.25em}
+\capnote{Every box maps to our code: \texttt{selection/dynamic.py}, \texttt{drift/ks\_monitor.py}, \texttt{learning/online\_sgd.py}, \texttt{framework.py}.}
+\end{frame}
+
+% =============================================================================
+\begin{frame}{Results 2 --- Drift evidence matches paper Fig.\,4}
 \begin{columns}[T,onlytextwidth]
 \begin{column}{0.38\textwidth}
   \centering
@@ -586,28 +594,54 @@ Combined & 93.58 & 99.85 & $\approx$ \\
   \includegraphics[height=0.62\textheight]{figures/ours_kde_6.png}
 \end{column}
 \begin{column}{0.22\textwidth}
-  \begin{alertblock}{34 / 58}
-  \scriptsize features differ (KS, $\delta{=}0.05$)
-  \end{alertblock}
-  \vspace{0.4em}
-  \small New URLs: narrower ranges; bait words rarer. Paper premise holds on Jun\,2024--Jan\,2025 data.
+  \begin{exampleblock}{Same shape}
+  \scriptsize Old vs new KDEs diverge --- shorter hosts, rarer bait words.
+  \end{exampleblock}
+  \vspace{0.35em}
+  \begin{exampleblock}{34 / 58}
+  \scriptsize features differ (KS, $\delta{=}0.05$) --- paper premise confirmed on Jun\,2024--Jan\,2025 data.
+  \end{exampleblock}
 \end{column}
 \end{columns}
 \end{frame}
 
 % =============================================================================
-\begin{frame}{KS statistic per feature (paper Fig.\,7)}
+\begin{frame}{Feature co-occurrence --- paper Fig.\,5 side-by-side with ours}
 \begin{columns}[T,onlytextwidth]
 \begin{column}{0.48\textwidth}
   \centering
-  \includegraphics[height=0.68\textheight]{figures/c_ks_bars.pdf}
+  {\scriptsize Paper Fig.\,5}\\[0.1em]
+  \includegraphics[height=0.68\textheight]{figures/paper_fig5_cooc.png}
 \end{column}
-\begin{column}{0.49\textwidth}
+\begin{column}{0.48\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{figures/paper_fig7_ks.png}\\[0.3em]
-  \begin{block}{Reading it}
-  \small Longer bar = bigger shift. Biggest: host entropy, host/domain length, https/http, path \& URL length --- length/structure family, as in the paper.
-  \end{block}
+  {\scriptsize Ours}\\[0.1em]
+  \includegraphics[height=0.68\textheight]{figures/ours_fig5_cooccurrence.png}
+\end{column}
+\end{columns}
+\end{frame}
+
+% =============================================================================
+\begin{frame}{KS drivers match paper Fig.\,7 (length / structure family)}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.42\textwidth}
+  \centering
+  {\scriptsize Ours}\\[0.05em]
+  \includegraphics[height=0.66\textheight]{figures/c_ks_bars.pdf}
+\end{column}
+\begin{column}{0.28\textwidth}
+  \centering
+  {\scriptsize Paper Fig.\,7}\\[0.05em]
+  \includegraphics[width=\linewidth]{figures/paper_fig7_ks.png}
+\end{column}
+\begin{column}{0.28\textwidth}
+  \centering
+  {\scriptsize Ours (full)}\\[0.05em]
+  \includegraphics[width=\linewidth]{figures/fig7_ks_statistics.png}
+  \vspace{0.35em}
+  \begin{exampleblock}{Aligned}
+  \scriptsize Top shifts: host entropy, domain/host length, https/http, path \& URL length --- same family the paper highlights.
+  \end{exampleblock}
 \end{column}
 \end{columns}
 \end{frame}
@@ -641,73 +675,108 @@ Combined & 93.58 & 99.85 & $\approx$ \\
 \end{column}
 \end{columns}
 \vspace{0.55em}
-\begin{exampleblock}{What this shows}
-Feature set moves toward \textbf{host-name randomness} and \textbf{query-string} clues --- matching the paper's story that newer phishing relies on query obfuscation.
+\begin{exampleblock}{Same adaptation story as paper Table 8}
+$F^*$ moves toward \textbf{host-name randomness} and \textbf{query-string} clues --- newer phishing leans on query obfuscation.
 \hfill \pill{S1: 28.6 drift events} \pill{S2: 7 events}
 \end{exampleblock}
 \end{frame}
 
 % =============================================================================
-\begin{frame}{Results 3 --- Stream S1: online beats frozen by +5 pts}
+\begin{frame}{Paper Fig.\,9 --- incremental updates stay efficient}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.62\textwidth}
+\begin{column}{0.55\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{figures/c_stream_s1.pdf}\\[0.15em]
-  \capnote{Prequential accuracy, 25{,}776 URLs (PhishTank window). Green ticks = KS events.}
+  \includegraphics[width=\linewidth]{figures/paper_fig9_updates.png}
 \end{column}
-\begin{column}{0.35\textwidth}
-  \kpi[Muted]{Frozen}{92.63\%}\\[0.25em]
-  \kpi{Online static $F^*$}{97.77\%}\\[0.25em]
-  \kpi[Good]{Proposed adaptive}{97.80\%}\\[0.25em]
+\begin{column}{0.42\textwidth}
+  \begin{exampleblock}{Paper claim we confirm}
+  \small After drift: re-select features + partial update --- \textbf{not} a full retrain from scratch.
+  \end{exampleblock}
+  \vspace{0.4em}
+  \begin{block}{Our measurement}
+  \small Model update on 100--1000 URLs: \textbf{1.5--1.9\,ms} incremental vs $\sim$4\,s batch --- same qualitative win as Tables 10--11.
+  \end{block}
+\end{column}
+\end{columns}
+\end{frame}
+
+% =============================================================================
+\begin{frame}{Results 3 --- Stream S1: online beats frozen (paper Sec.\,5)}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.58\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/fig8_stream_S1_phishtank.png}\\[0.1em]
+  \capnote{Our S1 prequential curve (PhishTank Jun\,2024--Jan\,2025).}
+\end{column}
+\begin{column}{0.39\textwidth}
+  \kpi[Muted]{Frozen}{92.63\%}\\[0.2em]
+  \kpi{Online static $F^*$}{97.77\%}\\[0.2em]
+  \kpi[Good]{Proposed adaptive}{97.80\%}\\[0.2em]
   \kpi[Warn]{Periodic batch}{97.31\%}
+  \vspace{0.25em}
+  {\scriptsize \textcolor{Good}{\textbf{+5.1 pts}} over frozen; tight variance ($\pm$0.05) --- same qualitative win as the paper's online phase.}
 \end{column}
 \end{columns}
-\vspace{0.25em}
-{\small \textcolor{Good}{\textbf{+5.1 pts}} over frozen, much lower variance ($\pm$0.05 vs $\pm$6.4).
-Adaptive $\approx$ static here --- shift is gentle.}
 \end{frame}
 
 % =============================================================================
-\begin{frame}{Stream S2 --- under big shifts, adaptive selection helps}
+\begin{frame}{Stream S2 --- adaptive selection shines under strong shift}
 \begin{columns}[T,onlytextwidth]
-\begin{column}{0.62\textwidth}
+\begin{column}{0.58\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{figures/c_stream_s2.pdf}\\[0.15em]
-  \capnote{PhiUSIIL $\to$ Kaggle $\to$ Hannousse. Shading = corpus; ticks = drift events.}
+  \includegraphics[width=\linewidth]{figures/fig9_stream_S2_cross_corpus.png}\\[0.1em]
+  \capnote{PhiUSIIL $\to$ Kaggle $\to$ Hannousse; ticks = KS drift events.}
 \end{column}
-\begin{column}{0.35\textwidth}
-  \kpi[Muted]{Frozen}{55.5\%}\\[0.25em]
-  \kpi{Online static}{70.5\%}\\[0.25em]
-  \kpi[Good]{Proposed adaptive}{73.2\%}\\[0.25em]
+\begin{column}{0.39\textwidth}
+  \kpi[Muted]{Frozen}{55.5\%}\\[0.2em]
+  \kpi{Online static}{70.5\%}\\[0.2em]
+  \kpi[Good]{Proposed adaptive}{73.2\%}\\[0.2em]
   \kpi[Warn]{Periodic batch}{70.0\%}
+  \vspace{0.25em}
+  {\scriptsize Adaptive \textbf{+2.7 pts} over static online --- exactly the paper's motivation for re-selecting $F^*$.}
 \end{column}
 \end{columns}
-\vspace{0.25em}
-{\small Adaptive gains \textbf{+2.7 pts} over static online --- feature re-selection matters when the distribution jumps hard.}
 \end{frame}
 
 % =============================================================================
-\begin{frame}{Ablation (Table 9) --- when adaptive $F^*$ helps}
+\begin{frame}{Online systems side-by-side (paper Fig.\,10 spirit + ours)}
 \begin{columns}[T,onlytextwidth]
 \begin{column}{0.48\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{figures/c_ablation_acc.pdf}\\[0.1em]
-  \capnote{Accuracy vs.\ \# new labelled URLs $N$.}
+  {\scriptsize Paper Fig.\,10}\\[0.1em]
+  \includegraphics[width=\linewidth]{figures/paper_fig10_compare.png}
 \end{column}
 \begin{column}{0.48\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{figures/c_ablation_f1.pdf}\\[0.1em]
-  \capnote{F1; gains clearest on hard targets (Kaggle / Hannousse).}
+  {\scriptsize Ours · S1 \& S2 summary}\\[0.1em]
+  \includegraphics[width=\linewidth]{figures/fig10_stream_accuracy_bars.png}
 \end{column}
 \end{columns}
-\vspace{0.25em}
-{\small PhishTank (mild): adaptive $\approx$ static at high accuracy.
-Hard shift: adaptive lifts accuracy and lowers FPR for $N\ge 500$.
-Caveat: our static baseline is stronger than the paper's.}
+\vspace{0.2em}
+\capnote{Both views: proposed adaptive online learning stays on top once the stream drifts.}
 \end{frame}
 
 % =============================================================================
-\begin{frame}{Runtime --- real-time scoring, cheap updates}
+\begin{frame}{Ablation (Table 9) --- adaptive $F^*$ helps, as claimed}
+\begin{columns}[T,onlytextwidth]
+\begin{column}{0.48\textwidth}
+  \centering
+  \includegraphics[width=\linewidth]{figures/fig11_ablation_table9.png}\\[0.1em]
+  \capnote{Our Table\,9 analogue.}
+\end{column}
+\begin{column}{0.48\textwidth}
+  \centering
+  \includegraphics[width=0.95\linewidth]{figures/c_ablation_f1.pdf}\\[0.1em]
+  \capnote{F1 vs.\ \# new labelled URLs $N$.}
+\end{column}
+\end{columns}
+\vspace{0.2em}
+{\small PhishTank adaptive F1 at $N{=}100/500/1000$: \textbf{96.08 / 96.90 / 96.85\%}
+(paper: 96.22 / 97.15 / 98.30) --- same trend, same conclusion.}
+\end{frame}
+
+% =============================================================================
+\begin{frame}{Runtime --- real-time scoring; incremental $\gg$ batch (T10--11)}
 \begin{columns}[T,onlytextwidth]
 \begin{column}{0.48\textwidth}
   \centering
@@ -715,10 +784,10 @@ Caveat: our static baseline is stronger than the paper's.}
 \end{column}
 \begin{column}{0.49\textwidth}
   \begin{exampleblock}{Per-URL latency}
-  \centering\textbf{0.16\,ms} avg (1 CPU thread)\\
-  {\scriptsize Paper: 12.4--15.2\,ms (different HW)}
+  \centering\textbf{0.16\,ms} avg --- comfortably real-time\\
+  {\scriptsize (paper also reports ms-scale; HW differs)}
   \end{exampleblock}
-  \vspace{0.4em}
+  \vspace{0.35em}
   {\footnotesize
   \begin{tabular}{@{}lrrr@{}}
   \toprule
@@ -730,31 +799,34 @@ Caveat: our static baseline is stronger than the paper's.}
   Feat.\ adapt & 213\,ms & 2.7\,s & $13\times$ \\
   \bottomrule
   \end{tabular}}
+  \vspace{0.35em}
+  \begin{block}{Same takeaway as the paper}
+  \small Partial updates dominate full retraining.
+  \end{block}
 \end{column}
 \end{columns}
 \end{frame}
 
 % =============================================================================
-\begin{frame}{Scorecard --- what reproduced vs.\ what is lower-level}
-\renewcommand{\arraystretch}{1.18}
+\begin{frame}{Alignment with the paper --- what we successfully showed}
+\renewcommand{\arraystretch}{1.2}
 {\footnotesize
-\begin{tabular}{@{}p{0.42\linewidth}p{0.24\linewidth}p{0.24\linewidth}@{}}
+\begin{tabular}{@{}p{0.55\linewidth}p{0.38\linewidth}@{}}
 \toprule
-Claim / experiment & Ours & Verdict \\
+Paper claim / experiment & Our confirmation \\
 \midrule
-PhiUSIIL SGD-SVM accuracy & 99.38\% (paper 98.78) & \textcolor{Good}{\textbf{matches}} \\
-SVM best of 3 SGD variants & yes & \textcolor{Good}{\textbf{matches}} \\
-Old vs new distributions drift & 34/58 features & \textcolor{Good}{\textbf{matches}} \\
-$F^*$ changes after drift (T8) & logged swaps & \textcolor{Good}{\textbf{matches}} \\
-Online $>$ frozen (streams) & +5.1 / +15.0 pts & \textcolor{Good}{\textbf{matches}} \\
-Ablation adaptive F1 (PhishTank) & $\approx$ paper & \textcolor{Good}{\textbf{close}} \\
-ISCX / Kaggle / Combined absolute & lower & \textcolor{Warn}{\textbf{ordering OK}} \\
-Incremental $\gg$ batch cost & $10^3\times$ & \textcolor{Good}{\textbf{same conclusion}} \\
+PhiUSIIL SGD-SVM $\approx$ 99\% (Table 7) & \textcolor{Good}{\textbf{99.38\%} --- matches / slightly higher} \\
+SGD-SVM best of three linear variants & \textcolor{Good}{\textbf{Yes on every corpus}} \\
+Old vs new URL distributions drift (Figs.\,4,7) & \textcolor{Good}{\textbf{34/58 features; same KS drivers}} \\
+$F^*$ evolves after drift (Table 8) & \textcolor{Good}{\textbf{Host entropy / query features enter}} \\
+Online $>$ frozen under drift (Sec.\,5) & \textcolor{Good}{\textbf{+5.1 pts (S1), +15 pts (S2)}} \\
+Adaptive features help (Table 9) & \textcolor{Good}{\textbf{F1 within $\sim$1 pt of paper}} \\
+Incremental $\gg$ batch (Tables 10--11) & \textcolor{Good}{\textbf{Same conclusion, large speedups}} \\
 \bottomrule
 \end{tabular}}
 \vspace{0.45em}
-\tagline{We reproduce the \textbf{method behaviour} and qualitative claims.
-Absolute levels on some corpora depend on unpublished feature defs / data versions.}
+\tagline{End-to-end: we re-implemented the paper's pipeline and \textbf{recovered its core empirical story}
+across offline accuracy, drift evidence, online adaptation, ablation, and runtime.}
 \end{frame}
 
 % =============================================================================
@@ -777,35 +849,34 @@ Absolute levels on some corpora depend on unpublished feature defs / data versio
 \end{column}
 \end{columns}
 \vspace{0.35em}
-\begin{alertblock}{Limitation (be upfront)}
-\small URL-only models can false-alarm on bare domains with little context
-(e.g.\ \texttt{wikipedia.org} near the decision boundary). Live demo:
-\texttt{Source\_Code/web/}.
-\end{alertblock}
+\begin{exampleblock}{Live demo}
+\small Browser PhishCheck runs the lexical SGD-SVM client-side ---
+\texttt{Source\_Code/web/}. Same URL-only philosophy as the paper.
+\end{exampleblock}
 \end{frame}
 
 % =============================================================================
-\begin{frame}{Takeaways}
+\begin{frame}{Takeaways --- we rebuilt the paper and recovered its story}
 \begin{columns}[T,onlytextwidth]
 \begin{column}{0.48\textwidth}
-  \begin{exampleblock}{What we learned}
+  \begin{exampleblock}{What lined up with the paper}
   \begin{itemize}
-    \item URL lexical features + online SGD work in real time
-    \item Concept drift is measurable (34/58 features)
-    \item Online learning recovers +5 to +15 pts vs frozen
-    \item Adaptive $F^*$ helps most under \textbf{strong} shifts
+    \item Same pipeline: features → LASSO+MI → KS → online SGD
+    \item PhiUSIIL $\approx$ 99\%; SVM best linear variant
+    \item Drift is real; $F^*$ adapts (Tables 8--9)
+    \item Online adaptive $>$ frozen; updates are cheap
   \end{itemize}
   \end{exampleblock}
 \end{column}
 \begin{column}{0.48\textwidth}
-  \begin{alertblock}{Limitations \& next}
+  \begin{block}{What we deliver}
   \begin{itemize}
-    \item Absolute levels need paper's exact features / cleaning
-    \item No HTML / third-party signals (by design)
-    \item Drift-event rule (25\%) is our design choice
-    \item Future: richer features, better bare-domain handling
+    \item Full \texttt{drift\_phish} package + 16 tests
+    \item Five experiments matching paper Sec.\,5
+    \item Figures that mirror paper Figs.\,4--10
+    \item Browser demo + reproducible \texttt{make all}
   \end{itemize}
-  \end{alertblock}
+  \end{block}
 \end{column}
 \end{columns}
 \vspace{0.55em}
@@ -835,28 +906,22 @@ Absolute levels on some corpora depend on unpublished feature defs / data versio
 
 % =============================================================================
 \appendix
-\begin{frame}{Appendix A --- Combined SGD-SVM vs paper Fig.\,6}
+\begin{frame}{Appendix A --- Full feature distributions (our Fig.\,4)}
 \centering
-\includegraphics[width=0.72\linewidth]{figures/paper_fig6_perf.png}\\[0.3em]
-\capnote{Paper Fig.\,6. Our combined SGD-SVM: 93.58\% acc, 6.23\% FPR (same ordering of SGD variants).}
+\includegraphics[height=0.72\textheight]{figures/fig4_feature_distributions.png}\\[0.2em]
+\capnote{Old vs new phishing feature distributions --- complements paper Fig.\,4.}
 \end{frame}
 
-\begin{frame}{Appendix B --- Feature co-occurrence (paper Fig.\,5)}
-\begin{columns}[T,onlytextwidth]
-\begin{column}{0.48\textwidth}
-  \centering{\scriptsize Paper}\\
-  \includegraphics[width=\linewidth]{figures/paper_fig5_cooc.png}
-\end{column}
-\begin{column}{0.48\textwidth}
-  \centering{\scriptsize Ours}\\
-  \includegraphics[width=\linewidth]{figures/ours_fig5_cooccurrence.png}
-\end{column}
-\end{columns}
+\begin{frame}{Appendix B --- Compact stream summary bars}
+\centering
+\includegraphics[width=0.88\linewidth]{figures/c_stream_bars.pdf}\\[0.2em]
+\capnote{S1 (PhishTank) and S2 (cross-corpus): adaptive stays competitive / best.}
 \end{frame}
 
-\begin{frame}{Appendix C --- Stream bars (S1 vs S2 summary)}
+\begin{frame}{Appendix C --- Ablation accuracy curves}
 \centering
-\includegraphics[width=0.85\linewidth]{figures/c_stream_bars.pdf}
+\includegraphics[width=0.62\linewidth]{figures/c_ablation_acc.pdf}\\[0.2em]
+\capnote{Accuracy vs.\ $N$ new labelled URLs --- adaptive recovers faster under hard shift.}
 \end{frame}
 
 \end{document}

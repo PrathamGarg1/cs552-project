@@ -17,19 +17,23 @@ Split: **Pratham** = slides 1–9 (problem, idea, features) · **Sumit** = 10–
 | 11 | KS test | 1:15 | Compare the CDF of old vs new data; D = biggest gap. p < 0.05 → feature drifted. Our rule: ≥ 25 % of F* drifted → drift event. |
 | 12 | Online loop | 1:15 | Predict first, then KS-test, then (if drift) re-select + blend history + replay, then learn. |
 | 13 | Data & experiments | 0:45 | Five experiments, datasets, seeds. |
-| 14 | Offline results | 1:00 | SVM best, like the paper. 99.38 % on PhiUSIIL vs paper 98.78 %. |
-| 15 | Why gap | 0:45 | Lower on Kaggle/ISCX/combined because the paper doesn't publish feature definitions / cleaning. Honest. |
-| 16 | KDE | 0:45 | Old vs new URLs: same shape of shift as the paper (shorter domains, fewer bait words). |
-| 17 | KS bars | 0:30 | Biggest shifts are length/structure features, like the paper. |
-| 18 | Table 8 | 0:45 | F* changes after drift: host-entropy, query features come in. |
-| 19 | Stream S1 | 1:00 | Online 97.8 % vs frozen 92.6 %; +5 points. Adaptive ≈ static here because the shift is gentle. |
-| 20 | Stream S2 | 1:00 | Big shift: frozen 55 %, adaptive 73 %, +2.7 over static. |
-| 21 | Ablation | 0:45 | Adaptive F* helps more under big shifts. Caveat: our static baseline is stronger than the paper's. |
-| 22 | Runtime | 0:45 | 0.16 ms per URL; incremental updates ~2,000× cheaper than retraining. |
-| 23 | Scorecard | 0:45 | What reproduced, what is lower-level. |
-| 24 | Demo | 1:00 | Live PhishCheck demo (or screenshots). Be upfront about wikipedia.org's 51.8 % false alarm. |
-| 25 | Takeaways | 0:30 | Learned / limitations / future work. |
-| 26 | Q&A | — | Leave on screen. |
+| 14 | Offline Fig.6 side-by-side | 1:00 | Lead with **same ranking as the paper**: SGD-SVM best. Show paper Fig.6 next to ours. |
+| 15 | PhiUSIIL Table 7 | 0:45 | Headline match: ours 99.38 % vs paper 98.78 %. Stay positive. |
+| 16 | Paper Figs 2–3 | 0:30 | Quick visual: every box is in our code. |
+| 17 | KDE Fig.4 | 0:45 | Old vs new: **same shape** as the paper. |
+| 18 | Co-occurrence Fig.5 | 0:30 | Side-by-side paper vs ours. |
+| 19 | KS Fig.7 | 0:30 | Same length/structure drivers as the paper. |
+| 20 | Table 8 | 0:40 | F* adapts: host-entropy / query features — paper's story. |
+| 21 | Fig.9 updates | 0:30 | Incremental update story matches Tables 10–11. |
+| 22 | Stream S1 | 0:50 | Online 97.8 % vs frozen 92.6 %; +5 pts — paper Sec.5 win. |
+| 23 | Stream S2 | 0:50 | Adaptive 73 % vs frozen 55 %; +2.7 over static. |
+| 24 | Fig.10 bars | 0:30 | Paper Fig.10 + our summary bars: adaptive on top. |
+| 25 | Ablation T9 | 0:40 | F1 within ~1 pt of paper (96.08/96.90/96.85). |
+| 26 | Runtime | 0:30 | Real-time; incremental ≫ batch — same takeaway. |
+| 27 | Alignment scorecard | 0:40 | Walk green checkmarks only. Do **not** dwell on corpus-level absolute gaps. |
+| 28 | Demo | 0:45 | PhishCheck demo / screenshots. |
+| 29 | Takeaways | 0:30 | We rebuilt the paper and recovered its empirical story. |
+| 30 | Q&A | — | Leave on screen. |
 
 Total ≈ 22 min if nothing is cut. If short on time, speed up slides 8, 13, 16–18 and 21.
 

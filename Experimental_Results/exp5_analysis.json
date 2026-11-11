@@ -1,0 +1,315 @@
+{
+  "ks": {
+    "n_features": 58,
+    "n_drifted_at_0.05": 34,
+    "features": {
+      "url_length": {
+        "ks_window": 0.4626666307449341,
+        "p_window": 0.0,
+        "ks_full": 0.43145936727523804
+      },
+      "domain_length": {
+        "ks_window": 0.6100000143051147,
+        "p_window": 0.0,
+        "ks_full": 0.590985119342804
+      },
+      "path_length": {
+        "ks_window": 0.5486667156219482,
+        "p_window": 0.0,
+        "ks_full": 0.5509021282196045
+      },
+      "token_count": {
+        "ks_window": 0.109333336353302,
+        "p_window": 0.000233122002100572,
+        "ks_full": 0.09454900026321411
+      },
+      "num_subdirectories": {
+        "ks_window": 0.3466666638851166,
+        "p_window": 9.0937263842359e-41,
+        "ks_full": 0.3544737696647644
+      },
+      "url_shortening": {
+        "ks_window": 0.09333330392837524,
+        "p_window": 0.0027084676548838615,
+        "ks_full": 0.08910661935806274
+      },
+      "special_char_count": {
+        "ks_window": 0.16333329677581787,
+        "p_window": 3.2871425581504354e-09,
+        "ks_full": 0.1572592854499817
+      },
+      "number_count": {
+        "ks_window": 0.17400002479553223,
+        "p_window": 2.1240363634600357e-10,
+        "ks_full": 0.15075930953025818
+      },
+      "suspicious_tld": {
+        "ks_window": 0.09800004959106445,
+        "p_window": 0.0013788128271698952,
+        "ks_full": 0.0963476300239563
+      },
+      "has_port": {
+        "ks_window": 0.002666652202606201,
+        "p_window": 1.0,
+        "ks_full": 0.002583324909210205
+      },
+      "entropy": {
+        "ks_window": 0.17933335900306702,
+        "p_window": 5.0513947191799247e-11,
+        "ks_full": 0.14817938208580017
+      },
+      "is_ip": {
+        "ks_window": 0.009333312511444092,
+        "p_window": 1.0,
+        "ks_full": 0.010416686534881592
+      },
+      "num_dots": {
+        "ks_window": 0.3733333349227905,
+        "p_window": 0.0,
+        "ks_full": 0.36589229106903076
+      },
+      "num_slashes": {
+        "ks_window": 0.3933333158493042,
+        "p_window": 0.0,
+        "ks_full": 0.40239042043685913
+      },
+      "num_hyphens": {
+        "ks_window": 0.04466664791107178,
+        "p_window": 0.43041592836380005,
+        "ks_full": 0.05002403259277344
+      },
+      "num_at": {
+        "ks_window": 0.016000032424926758,
+        "p_window": 0.9999606609344482,
+        "ks_full": 0.013491153717041016
+      },
+      "num_equals": {
+        "ks_window": 0.09733337163925171,
+        "p_window": 0.00152150250505656,
+        "ks_full": 0.1039467453956604
+      },
+      "num_qmark": {
+        "ks_window": 0.07866668701171875,
+        "p_window": 0.01823589578270912,
+        "ks_full": 0.0901874303817749
+      },
+      "num_ampersand": {
+        "ks_window": 0.09666669368743896,
+        "p_window": 0.0016778260469436646,
+        "ks_full": 0.09978866577148438
+      },
+      "num_percent": {
+        "ks_window": 0.002666652202606201,
+        "p_window": 1.0,
+        "ks_full": 0.004310011863708496
+      },
+      "num_underscore": {
+        "ks_window": 0.026000022888183594,
+        "p_window": 0.9559242129325867,
+        "ks_full": 0.03706657886505127
+      },
+      "non_alphanumeric_chars": {
+        "ks_window": 0.15933328866958618,
+        "p_window": 8.772304660453756e-09,
+        "ks_full": 0.14952075481414795
+      },
+      "homoglyph_detection": {
+        "ks_window": 0.0,
+        "p_window": 1.0,
+        "ks_full": 0.0
+      },
+      "url_encoded": {
+        "ks_window": 0.002666652202606201,
+        "p_window": 1.0,
+        "ks_full": 0.004310011863708496
+      },
+      "javascript_data_uri": {
+        "ks_window": 0.0006666779518127441,
+        "p_window": 1.0,
+        "ks_full": 8.33272933959961e-05
+      },
+      "suspicious_file_extension": {
+        "ks_window": 0.0006666779518127441,
+        "p_window": 1.0,
+        "ks_full": 0.00200575590133667
+      },
+      "suspicious_term_frequency": {
+        "ks_window": 0.10399997234344482,
+        "p_window": 0.0005513326614163816,
+        "ks_full": 0.07864183187484741
+      },
+      "brand_name_proximity": {
+        "ks_window": 0.10799998044967651,
+        "p_window": 0.0002902720298152417,
+        "ks_full": 0.10823553800582886
+      },
+      "multiple_redirects": {
+        "ks_window": 0.001999974250793457,
+        "p_window": 1.0,
+        "ks_full": 0.004360318183898926
+      },
+      "redirect_chain_complexity": {
+        "ks_window": 0.01866668462753296,
+        "p_window": 0.9991885423660278,
+        "ks_full": 0.00930321216583252
+      },
+      "has_https": {
+        "ks_window": 0.5633333325386047,
+        "p_window": 0.0,
+        "ks_full": 0.5629964470863342
+      },
+      "query_length": {
+        "ks_window": 0.10133332014083862,
+        "p_window": 0.0008342156652361155,
+        "ks_full": 0.10898834466934204
+      },
+      "num_params": {
+        "ks_window": 0.09733337163925171,
+        "p_window": 0.00152150250505656,
+        "ks_full": 0.10215067863464355
+      },
+      "scheme_http": {
+        "ks_window": 0.47200000286102295,
+        "p_window": 0.0,
+        "ks_full": 0.4723297953605652
+      },
+      "num_digits_path": {
+        "ks_window": 0.3539999723434448,
+        "p_window": 1.5218101322567513e-42,
+        "ks_full": 0.3492310643196106
+      },
+      "num_digits_query": {
+        "ks_window": 0.10199999809265137,
+        "p_window": 0.0007529244758188725,
+        "ks_full": 0.1024247407913208
+      },
+      "num_hyphens_host": {
+        "ks_window": 0.10399997234344482,
+        "p_window": 0.0005513326614163816,
+        "ks_full": 0.11264848709106445
+      },
+      "num_delimiters_path": {
+        "ks_window": 0.3466666638851166,
+        "p_window": 9.0937263842359e-41,
+        "ks_full": 0.3544737696647644
+      },
+      "longest_path_token_length": {
+        "ks_window": 0.5600000023841858,
+        "p_window": 0.0,
+        "ks_full": 0.5624992251396179
+      },
+      "num_tlds": {
+        "ks_window": 0.3293333053588867,
+        "p_window": 9.819984850301292e-37,
+        "ks_full": 0.30543267726898193
+      },
+      "num_subdomains": {
+        "ks_window": 0.30799999833106995,
+        "p_window": 4.392275784149756e-32,
+        "ks_full": 0.3110884428024292
+      },
+      "tld_length": {
+        "ks_window": 0.34599998593330383,
+        "p_window": 1.3126663364562724e-40,
+        "ks_full": 0.3427422344684601
+      },
+      "longest_host_label_length": {
+        "ks_window": 0.6413333415985107,
+        "p_window": 0.0,
+        "ks_full": 0.6216193437576294
+      },
+      "digit_ratio": {
+        "ks_window": 0.22666668891906738,
+        "p_window": 2.0571394535958886e-17,
+        "ks_full": 0.1902935802936554
+      },
+      "host_entropy": {
+        "ks_window": 0.6706666350364685,
+        "p_window": 0.0,
+        "ks_full": 0.6467149257659912
+      },
+      "has_login": {
+        "ks_window": 0.04399996995925903,
+        "p_window": 0.449464350938797,
+        "ks_full": 0.03893929719924927
+      },
+      "has_verify": {
+        "ks_window": 0.0033333301544189453,
+        "p_window": 1.0,
+        "ks_full": 0.0024970173835754395
+      },
+      "has_billing": {
+        "ks_window": 0.0013333559036254883,
+        "p_window": 1.0,
+        "ks_full": 0.0007672309875488281
+      },
+      "has_free": {
+        "ks_window": 0.002666652202606201,
+        "p_window": 1.0,
+        "ks_full": 0.0030142664909362793
+      },
+      "has_secure": {
+        "ks_window": 0.015999972820281982,
+        "p_window": 0.9999606609344482,
+        "ks_full": 0.010781526565551758
+      },
+      "has_admin": {
+        "ks_window": 0.016666650772094727,
+        "p_window": 0.999903678894043,
+        "ks_full": 0.008321702480316162
+      },
+      "has_account": {
+        "ks_window": 0.005333364009857178,
+        "p_window": 1.0,
+        "ks_full": 0.006195008754730225
+      },
+      "has_update": {
+        "ks_window": 0.01733332872390747,
+        "p_window": 0.999786913394928,
+        "ks_full": 0.01041632890701294
+      },
+      "has_password": {
+        "ks_window": 0.0006666779518127441,
+        "p_window": 1.0,
+        "ks_full": 9.47713851928711e-05
+      },
+      "javascript_obfuscation": {
+        "ks_window": 0.0,
+        "p_window": 1.0,
+        "ks_full": 0.0
+      },
+      "iframe_usage": {
+        "ks_window": 0.0006666779518127441,
+        "p_window": 1.0,
+        "ks_full": 0.0001666545867919922
+      },
+      "domain_mismatch": {
+        "ks_window": 0.09333336353302002,
+        "p_window": 0.0027084448374807835,
+        "ks_full": 0.06794369220733643
+      },
+      "redirects_chain_length": {
+        "ks_window": 0.01866668462753296,
+        "p_window": 0.9991885423660278,
+        "ks_full": 0.00930321216583252
+      }
+    }
+  },
+  "cooccurrence_features": [
+    "url_length",
+    "domain_length",
+    "path_length",
+    "token_count",
+    "num_subdirectories",
+    "special_char_count",
+    "number_count",
+    "num_dots",
+    "num_slashes",
+    "num_hyphens",
+    "non_alphanumeric_chars",
+    "has_https",
+    "scheme_http",
+    "num_delimiters_path",
+    "digit_ratio"
+  ]
+}

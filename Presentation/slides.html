@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<title>CS 552 — Adaptive Drift-Aware Phishing URL Detection (Presentation)</title>
+<link rel="stylesheet" href="slides.css">
+<style>
+body{counter-reset:sl}
+.slide{counter-increment:sl}
+.pg::after{content:counter(sl)}
+</style></head><body>
+
+<!-- ============================ 1. TITLE ============================ -->
+<section class="slide dark" id="s1">
+  <div style="position:absolute;left:56px;top:40px;display:flex;gap:10px;align-items:center">
+    <span class="tag" style="background:rgba(255,255,255,.12);color:#CFE0FF">CS 552 · Group Project</span>
+    <span class="tag" style="background:rgba(255,255,255,.12);color:#CFE0FF">Implementation &amp; evaluation</span>
+  </div>
+  <div style="position:absolute;left:56px;top:96px;width:1168px">
+    <div style="font-size:46px;line-height:1.1;font-weight:800;letter-spacing:-.025em">An Efficient Framework for Phishing URL Detection Using Adaptive Drift-Aware Feature Monitoring and Online&nbsp;Learning</div>
+    <div style="margin-top:16px;font-size:22px;color:#B7C5E6">Implementation and evaluation — CS 552 Group Project</div>
+    <div style="margin-top:14px;display:flex;gap:14px">
+      <span style="background:#fff;color:var(--navy);font-weight:800;font-size:21px;padding:8px 18px;border-radius:999px">Pratham Garg</span>
+      <span style="background:#fff;color:var(--navy);font-weight:800;font-size:21px;padding:8px 18px;border-radius:999px">Sumit Sharma</span>
+      <span style="background:#fff;color:var(--navy);font-weight:800;font-size:21px;padding:8px 18px;border-radius:999px">Vivaan Garg</span>
+    </div>
+  </div>
+  <div style="position:absolute;left:56px;right:56px;top:372px;bottom:66px;border-radius:22px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);padding:22px 30px;display:flex;gap:30px">
+    <div style="flex:1">
+      <div style="font-size:14px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8FB0FF;margin-bottom:10px">Assigned paper — full reference</div>
+      <div style="font-size:24px;line-height:1.45;color:#EAF1FF">Sruthi Krishnan and Manohar Naik S. “An Efficient Framework for Phishing URL Detection Using Adaptive Drift-Aware Feature Monitoring and Online Learning.” <i>Security and Privacy</i>, vol. 8, no. 4, article e70057, 2025. John Wiley &amp; Sons Ltd.</div>
+      <div style="font-size:21px;line-height:1.45;color:#B7C5E6;margin-top:12px">Department of Computer Science, Central University of Kerala, Periye, India.</div>
+    </div>
+    <div style="width:330px;display:flex;flex-direction:column;gap:14px;justify-content:center;border-left:1px solid rgba(255,255,255,.18);padding-left:28px">
+      <div><div style="font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#8FB0FF;font-weight:800">DOI</div><div style="font-size:24px;font-weight:800">10.1002/spy2.70057</div></div>
+      <div><div style="font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#8FB0FF;font-weight:800">Paper link</div><div style="font-size:17px;line-height:1.35;word-break:break-all;color:#EAF1FF">https://onlinelibrary.wiley.com/doi/full/10.1002/spy2.70057</div></div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Group Project</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 2. ROADMAP ============================ -->
+<section class="slide" id="s2">
+  <div class="top"><span class="tag">Roadmap</span><h1 class="t">Our 20-minute story: from “why?” to “does it work?”</h1></div>
+  <div class="body" style="top:122px">
+    <div class="row" style="gap:14px;height:340px">
+      <div class="card col" style="flex:1;gap:8px"><span class="num">1</span><div class="h3">The problem</div><p style="font-size:17px;color:var(--muted)">Phishing links and why a model trained once goes stale (concept drift).</p><div class="pill" style="align-self:flex-start;margin-top:auto">≈ 3 min</div></div>
+      <div class="card col" style="flex:1;gap:8px"><span class="num p">2</span><div class="h3">The paper’s idea</div><p style="font-size:17px;color:var(--muted)">URL-only features + a model that watches for drift and updates itself.</p><div class="pill p" style="align-self:flex-start;margin-top:auto">≈ 2 min</div></div>
+      <div class="card col" style="flex:1;gap:8px"><span class="num g">3</span><div class="h3">How it works</div><p style="font-size:17px;color:var(--muted)">Step by step: features → LASSO + MI → SGD-SVM → KS drift test → online loop.</p><div class="pill g" style="align-self:flex-start;margin-top:auto">≈ 6 min</div></div>
+      <div class="card col" style="flex:1;gap:8px"><span class="num a">4</span><div class="h3">What we built</div><p style="font-size:17px;color:var(--muted)">Our Python implementation, data we used, experiments we ran.</p><div class="pill a" style="align-self:flex-start;margin-top:auto">≈ 2 min</div></div>
+      <div class="card col" style="flex:1;gap:8px"><span class="num r">5</span><div class="h3">Results</div><p style="font-size:17px;color:var(--muted)">What reproduced, what did not, and an honest look at why.</p><div class="pill r" style="align-self:flex-start;margin-top:auto">≈ 6 min</div></div>
+    </div>
+    <div class="card" style="margin-top:22px;background:var(--navy);border:none;color:#fff;display:flex;align-items:center;gap:22px;padding:26px 30px">
+      <div style="font-size:15px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8FB0FF;white-space:nowrap">The one-line version</div>
+      <div style="font-size:23px;line-height:1.35;font-weight:600">A phishing detector that <span style="color:#7FE0B5">notices when attackers change their style</span>, re-picks the most useful clues, and <span style="color:#7FE0B5">keeps learning in milliseconds</span> instead of retraining from scratch.</div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 3. PROBLEM ============================ -->
+<section class="slide" id="s3">
+  <div class="top"><span class="tag red">The problem</span><h1 class="t">Phishing starts with a link that looks almost right</h1></div>
+  <div class="body">
+    <div class="row" style="gap:24px">
+      <div class="col grow" style="gap:16px">
+        <div class="browser">
+          <div class="bar"><div class="dots"><i></i><i></i><i></i></div><div class="addr"><span style="color:var(--green)">🔒</span> https://www.paypal.com/signin</div><span class="pill g">real</span></div>
+          <div style="padding:14px 18px;font-size:16px;color:var(--muted)">Real login page — you type your password, PayPal gets it.</div>
+        </div>
+        <div class="browser" style="border-color:#F5B5B7">
+          <div class="bar" style="background:#FBEAEA"><div class="dots"><i></i><i></i><i></i></div><div class="addr" style="border-color:#F5B5B7">http://secure-paypal-login<span class="red b">.tk</span>/confirm/account?user=1</div><span class="pill r">phishing</span></div>
+          <div style="padding:14px 18px;font-size:16px;color:var(--muted)">Looks the same on screen — the attacker gets your password.</div>
+        </div>
+        <div class="card" style="background:var(--amber-l);border-color:#FBD58B"><div class="h4" style="color:#8A5A00">Why this is hard</div><p style="margin-top:6px">Attackers send millions of such links by email, SMS and social media. Blocklists are always one step behind a brand-new link — so we need a model that can judge a link <b>it has never seen</b>.</p></div>
+      </div>
+      <div class="col" style="width:470px;gap:16px">
+        <div class="card"><div class="h4">Two ways to judge a link</div>
+          <table class="t" style="margin-top:6px;font-size:15.5px">
+            <tr><th></th><th>Page-content methods</th><th style="color:var(--green)">URL-only (this paper)</th></tr>
+            <tr><td class="b">Needs</td><td>download + render the page</td><td class="green b">just the text of the URL</td></tr>
+            <tr><td class="b">Speed</td><td>slow</td><td class="green b">instant</td></tr>
+            <tr><td class="b">Privacy</td><td>reads page content</td><td class="green b">no page content read</td></tr>
+            <tr><td class="b">Safety</td><td>touches the malicious site</td><td class="green b">never visits it</td></tr>
+          </table></div>
+        <div class="card" style="background:var(--navy);border:none;color:#fff"><div class="h4" style="color:#8FB0FF">Key question</div><div style="font-size:22px;font-weight:700;line-height:1.3;margin-top:6px">Can the text of a URL alone be enough — and can the model <span style="color:#7FE0B5">stay accurate as attacks evolve?</span></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 4. CONCEPT DRIFT ============================ -->
+<section class="slide" id="s4">
+  <div class="top"><span class="tag red">The catch · concept drift</span><h1 class="t">A model trained once goes stale — we measured it</h1></div>
+  <div class="body">
+    <div class="row" style="gap:24px">
+      <div class="col" style="width:470px;gap:14px">
+        <div class="card"><div class="h3">What is “concept drift”?</div>
+          <p style="margin-top:6px">The statistics of the data <b>change over time</b>. Phishers keep changing how their URLs look — shorter hostnames, more random characters, fewer bait words like “free” or “secure”.</p>
+          <p style="margin-top:8px">A model learned from <i>yesterday’s</i> URLs makes more and more mistakes on <i>today’s</i>. In our data <b class="red">34 of 58</b> features measurably shifted between old and new phishing URLs.</p></div>
+        <div class="card"><div class="h4">The obvious fix — and its cost</div>
+          <p style="margin-top:6px"><b>Retrain from scratch</b> on all data each time: about <span class="b amber">4 seconds</span> on 210k URLs in our runs, vs. <span class="b green">1.5 ms</span> for an incremental update.</p></div>
+      </div>
+      <div class="col grow" style="gap:10px">
+        <div class="imgcard"><img class="fig" src="assets/c_frozen_decay.svg"></div>
+        <div class="cap"><b>Our experiment (S2):</b> the same model that scores <b>99%</b> on the data it was trained for drops to <b>≈ 48%</b> — coin-flip level — once URLs come from a different source, because it is <b>frozen</b> and never updated.</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 5. PAPER IDEA ============================ -->
+<section class="slide" id="s5">
+  <div class="top"><span class="tag purple">The paper’s idea</span><h1 class="t">Three ingredients that keep a detector current</h1></div>
+  <div class="body">
+    <div class="row" style="gap:22px">
+      <div class="col" style="width:560px;gap:12px">
+        <div class="imgcard"><img class="fig" src="assets/paper_fig1_arch.png"></div>
+        <div class="cap"><b>Paper’s Fig. 1.</b> Top: offline phase (done once). Bottom: online phase (never ends) — new data enters a rolling buffer, a drift detector watches it, and the feature set and the model are refreshed.</div>
+      </div>
+      <div class="col grow" style="gap:12px">
+        <div class="card row c" style="gap:16px;padding:16px 18px"><span class="num">1</span><div><div class="h3">Pick the best clues <span class="mut" style="font-weight:600">(LASSO + MI)</span></div><p class="small">Out of dozens of URL features, keep only the most informative quarter. Re-pick when things change.</p></div></div>
+        <div class="card row c" style="gap:16px;padding:16px 18px"><span class="num a">2</span><div><div class="h3">Watch for change <span class="mut" style="font-weight:600">(Kolmogorov–Smirnov test)</span></div><p class="small">Compare each feature’s distribution in new URLs vs. recent history. Statistically different → drift alarm.</p></div></div>
+        <div class="card row c" style="gap:16px;padding:16px 18px"><span class="num g">3</span><div><div class="h3">Learn on the fly <span class="mut" style="font-weight:600">(online SGD)</span></div><p class="small">Update a linear model with small mini-batches of new URLs — no full retraining.</p></div></div>
+        <div class="card" style="background:var(--green-l);border-color:#A9E2CB;padding:14px 18px"><div class="b green" style="font-size:16px;letter-spacing:.06em;text-transform:uppercase">Paper’s headline claim</div><div style="font-size:20px;font-weight:700;margin-top:4px">99.85 % accuracy · 0.067 % false-positive rate</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 6. OUR TASK + IMPLEMENTATION MAP ============================ -->
+<section class="slide" id="s6">
+  <div class="top"><span class="tag amber">Our task</span><h1 class="t">Our task: implement every box of the paper’s Fig. 1</h1></div>
+  <div class="body">
+    <div class="card flat" style="padding:12px 18px;margin-bottom:14px"><span class="b">Assignment:</span> implement the paper’s methodology and reproduce its experiments as closely as possible. We wrote everything from scratch as the Python package <code>drift_phish</code> (~1,200 lines) + 5 experiment scripts + 16 unit tests + a browser demo.</div>
+    <div class="row" style="gap:12px;align-items:stretch">
+      <div class="card col" style="flex:1;gap:6px;border-top:5px solid var(--blue)"><div class="h4 blue">Paper box</div><div class="h3">URL → features</div><p class="small">Table 3: lexical URL features, no HTML, no 3rd-party lookups</p><div style="margin-top:auto"><code>features/extractor.py</code><div class="small" style="margin-top:4px">58 features</div></div></div>
+      <div class="arrow">›</div>
+      <div class="card col" style="flex:1;gap:6px;border-top:5px solid var(--amber)"><div class="h4 amber">Paper box</div><div class="h3">Feature selection</div><p class="small">LASSO + mutual information, Algorithm 1</p><div style="margin-top:auto"><code>selection/dynamic.py</code><div class="small" style="margin-top:4px">S = w + I, τ = P75</div></div></div>
+      <div class="arrow">›</div>
+      <div class="card col" style="flex:1;gap:6px;border-top:5px solid var(--green)"><div class="h4 green">Paper box</div><div class="h3">SGD classifier</div><p class="small">Table 4: SVM / LR / Perceptron; offline fit + online <i>partial_fit</i></p><div style="margin-top:auto"><code>learning/online_sgd.py</code><div class="small" style="margin-top:4px">η₀ = 0.01, balanced</div></div></div>
+      <div class="arrow">›</div>
+      <div class="card col" style="flex:1;gap:6px;border-top:5px solid var(--red)"><div class="h4 red">Paper box</div><div class="h3">Drift detection</div><p class="small">K–S test per feature, δ = 0.05, buffer 1500, B = 500</p><div style="margin-top:auto"><code>drift/ks_monitor.py</code><div class="small" style="margin-top:4px">two-sample KS test</div></div></div>
+    </div>
+    <div class="card" style="margin-top:12px;background:var(--navy);border:none;color:#fff;display:flex;gap:24px;align-items:center;padding:16px 24px">
+      <div><div style="font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#8FB0FF;font-weight:800">Glues it together</div><div style="font-size:21px;font-weight:800;margin-top:2px"><span class="mono" style="background:rgba(255,255,255,.14);color:#fff">framework.py</span> &nbsp;the full online loop</div></div>
+      <div style="flex:1;font-size:17px;line-height:1.4;color:#D5E1FA">predict → KS test → (drift? re-select features + partial retrain) → learn from the batch. Four system modes for fair comparison: <b style="color:#fff">adaptive</b> (proposed), <b style="color:#fff">online_static</b>, <b style="color:#fff">frozen</b>, <b style="color:#fff">periodic_batch</b>.</div>
+    </div>
+    <div class="row" style="gap:12px;margin-top:12px">
+      <div class="card flat grow" style="padding:10px 16px"><span class="b">Evaluation code</span> · <code>eval/metrics.py</code>, <code>splits.py</code>, <code>data.py</code></div>
+      <div class="card flat grow" style="padding:10px 16px"><span class="b">One command</span> · <code>make all</code> reproduces every number &amp; figure</div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 7. URL ANATOMY ============================ -->
+<section class="slide" id="s7">
+  <div class="top"><span class="tag">Step 1 · Features</span><h1 class="t">Turning a URL into numbers a model can use</h1></div>
+  <div class="body">
+    <div class="card" style="padding:18px 24px">
+      <div style="font-family:'SF Mono',Menlo,monospace;font-size:27px;letter-spacing:.01em;white-space:nowrap"><span class="seg-scheme">http://</span><span class="seg-dom">secure-paypal-login</span><span class="seg-tld">.tk</span><span class="seg-path">/confirm/account</span><span class="seg-q">?user=1&amp;id=88</span></div>
+      <div style="display:flex;font-family:'SF Mono',Menlo,monospace;font-size:27px;margin-top:2px"><div style="width:7ch;border-top:4px solid #F5A524;text-align:center"><span style="font:700 14px 'Helvetica Neue';color:#F5A524;display:inline-block;padding-top:4px">scheme</span></div><div style="width:19ch;border-top:4px solid #2F6BFF;text-align:center"><span style="font:700 14px 'Helvetica Neue';color:#2F6BFF;display:inline-block;padding-top:4px">domain name</span></div><div style="width:3ch;border-top:4px solid #E5484D;text-align:center"><span style="font:700 14px 'Helvetica Neue';color:#E5484D;display:inline-block;padding-top:4px">TLD</span></div><div style="width:16ch;border-top:4px solid #12A06B;text-align:center"><span style="font:700 14px 'Helvetica Neue';color:#12A06B;display:inline-block;padding-top:4px">path</span></div><div style="width:13ch;border-top:4px solid #D6336C;text-align:center"><span style="font:700 14px 'Helvetica Neue';color:#D6336C;display:inline-block;padding-top:4px">query</span></div></div>
+    </div>
+    <div class="row" style="margin-top:16px;gap:20px">
+      <div class="card grow" style="padding:16px 20px">
+        <div class="h3" style="margin-bottom:8px">Real feature values from our extractor</div>
+        <table class="t tight" style="font-size:15px">
+          <tr><th>Feature (what it counts)</th><th class="n">wikipedia.org</th><th class="n" style="color:var(--red)">secure-paypal-login.tk</th></tr>
+          <tr><td><code>url_length</code> characters in total</td><td class="n">39</td><td class="n b">58</td></tr>
+          <tr><td><code>num_hyphens</code> “-” characters</td><td class="n">0</td><td class="n b red">2</td></tr>
+          <tr><td><code>number_count</code> digits</td><td class="n">0</td><td class="n b red">3</td></tr>
+          <tr><td><code>entropy</code> randomness of characters</td><td class="n">3.78</td><td class="n b red">4.62</td></tr>
+          <tr><td><code>has_https</code> / <code>scheme_http</code></td><td class="n">1 / 0</td><td class="n b red">0 / 1</td></tr>
+          <tr><td><code>suspicious_tld</code> (.tk, .xyz …)</td><td class="n">0</td><td class="n b red">1</td></tr>
+          <tr><td><code>suspicious_term_frequency</code> bait words</td><td class="n">0</td><td class="n b red">4</td></tr>
+          <tr><td><code>brand_name_proximity</code> brand in URL</td><td class="n">0</td><td class="n b red">1</td></tr>
+        </table>
+      </div>
+      <div class="col" style="width:330px;gap:14px">
+        <div class="card" style="background:var(--blue-l);border-color:#B9CEFF"><div class="h4 blue">Result</div><div style="font-size:19px;margin-top:6px;line-height:1.4">Each URL becomes a <b>vector of 58 numbers</b>. Nothing is downloaded — it’s pure string processing (≈ 0.16 ms per URL).</div></div>
+        <div class="card"><div class="h4">Why it works</div><div style="font-size:17px;margin-top:6px;line-height:1.4">Phishing URLs tend to be longer, hyphen- and digit-heavy, more random, use <code>http</code>, odd TLDs and bait words.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 8. FEATURE FAMILIES ============================ -->
+<section class="slide" id="s8">
+  <div class="top"><span class="tag">Step 1 · Features</span><h1 class="t">58 URL clues in six families (paper Table 3)</h1></div>
+  <div class="body">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+      <div class="card" style="border-top:5px solid var(--blue)"><div class="row c" style="justify-content:space-between"><div class="h3">Length &amp; size</div><span class="pill">8</span></div><p class="small" style="margin:6px 0 8px">How big is each part?</p><span class="chip">url_length</span><span class="chip">domain_length</span><span class="chip">path_length</span><span class="chip">query_length</span><span class="chip">token_count</span><span class="chip">longest_host_label</span><span class="chip">tld_length</span><span class="chip">…</span></div>
+      <div class="card" style="border-top:5px solid var(--purple)"><div class="row c" style="justify-content:space-between"><div class="h3">Structure &amp; symbols</div><span class="pill p">18</span></div><p class="small" style="margin:6px 0 8px">Dots, slashes, hyphens, “=”, “&amp;”, “@”, “%” …</p><span class="chip">num_dots</span><span class="chip">num_slashes</span><span class="chip">num_hyphens</span><span class="chip">num_subdomains</span><span class="chip">num_params</span><span class="chip">special_char_count</span><span class="chip">has_port</span><span class="chip">…</span></div>
+      <div class="card" style="border-top:5px solid var(--amber)"><div class="row c" style="justify-content:space-between"><div class="h3">Digits &amp; randomness</div><span class="pill a">6</span></div><p class="small" style="margin:6px 0 8px">Random-looking strings are suspicious.</p><span class="chip">number_count</span><span class="chip">digit_ratio</span><span class="chip">entropy</span><span class="chip">host_entropy</span><span class="chip">num_digits_path</span><span class="chip">num_digits_query</span></div>
+      <div class="card" style="border-top:5px solid var(--red)"><div class="row c" style="justify-content:space-between"><div class="h3">Bait words &amp; brands</div><span class="pill r">11</span></div><p class="small" style="margin:6px 0 8px">22 social-engineering terms from the paper.</p><span class="chip">suspicious_term_freq</span><span class="chip">brand_name_proximity</span><span class="chip">has_login</span><span class="chip">has_verify</span><span class="chip">has_secure</span><span class="chip">has_account</span><span class="chip">has_free</span><span class="chip">…</span></div>
+      <div class="card" style="border-top:5px solid #D6336C"><div class="row c" style="justify-content:space-between"><div class="h3">Obfuscation &amp; risky hosts</div><span class="pill" style="background:#FDE7EF;color:#D6336C">9</span></div><p class="small" style="margin:6px 0 8px">Tricks to hide the real destination.</p><span class="chip">is_ip</span><span class="chip">url_shortening</span><span class="chip">suspicious_tld</span><span class="chip">homoglyph_detection</span><span class="chip">url_encoded</span><span class="chip">javascript_data_uri</span><span class="chip">suspicious_file_ext</span><span class="chip">…</span></div>
+      <div class="card" style="border-top:5px solid var(--green)"><div class="row c" style="justify-content:space-between"><div class="h3">Scheme &amp; redirects</div><span class="pill g">6</span></div><p class="small" style="margin:6px 0 8px">HTTP vs HTTPS, redirect hints, domain mismatch.</p><span class="chip">has_https</span><span class="chip">scheme_http</span><span class="chip">multiple_redirects</span><span class="chip">redirect_chain_complexity</span><span class="chip">domain_mismatch</span><span class="chip">…</span></div>
+    </div>
+    <div class="card" style="margin-top:16px;background:var(--amber-l);border-color:#FBD58B;padding:14px 20px"><span class="b" style="color:#8A5A00">Honest note:</span> the paper’s redirect-chain and domain-mismatch features need live HTTP lookups. We use <b>lexical proxies</b> (e.g. “does the URL contain <code>redirect=</code> or a second <code>http</code>?”) so everything stays URL-string-only.</div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 9. LASSO + MI ============================ -->
+<section class="slide" id="s9">
+  <div class="top"><span class="tag amber">Step 2 · Feature selection</span><h1 class="t">Not every clue helps — keep the top quarter</h1></div>
+  <div class="body">
+    <div class="row c" style="gap:12px">
+      <div class="flowbox fb-grey" style="width:150px">58 features<small>every URL → 58 numbers</small></div>
+      <div class="arrow">›</div>
+      <div class="col" style="gap:8px;width:390px">
+        <div class="flowbox fb-amber" style="text-align:left"><span style="font-size:17px">LASSO</span> → weight <b>w</b><small>“Drop clues that don’t help the linear model.” Useless weights shrink to exactly 0 (λ = 0.0001).</small></div>
+        <div class="flowbox fb-purple" style="text-align:left"><span style="font-size:17px">Mutual information</span> → <b>I</b><small>“How much does knowing this clue reduce uncertainty about phishing vs. legit?” Also catches non-linear clues.</small></div>
+      </div>
+      <div class="arrow">›</div>
+      <div class="flowbox fb-blue" style="width:170px;font-size:19px">S = w + I<small>combined score per feature</small></div>
+      <div class="arrow">›</div>
+      <div class="flowbox fb-green" style="width:190px">Keep S ≥ τ<small>τ = 75th percentile → <b>F*</b> = 15 features</small></div>
+    </div>
+    <div class="row" style="margin-top:18px;gap:20px">
+      <div class="col grow" style="gap:8px">
+        <div class="imgcard" style="text-align:center"><img class="fig" src="assets/i_selection.svg" style="width:100%;height:215px;object-fit:contain"></div>
+        <div class="cap"><b>Illustration:</b> rank all 58 features by score; the top quarter (blue) survives as the active feature set <b>F*</b>.</div>
+      </div>
+      <div class="card" style="width:480px">
+        <div class="h4">F* chosen by our code on the combined corpus (real)</div>
+        <div style="margin-top:8px"><span class="chip">url_length</span><span class="chip">domain_length</span><span class="chip">path_length</span><span class="chip">token_count</span><span class="chip">num_subdirectories</span><span class="chip">special_char_count</span><span class="chip">number_count</span><span class="chip">num_dots</span><span class="chip">num_slashes</span><span class="chip">num_hyphens</span><span class="chip">non_alphanumeric_chars</span><span class="chip">has_https</span><span class="chip">scheme_http</span><span class="chip">num_delimiters_path</span><span class="chip">digit_ratio</span></div>
+        <p class="small" style="margin-top:10px"><b>Why shrink?</b> Fewer features → faster, less overfitting, and the model stays interpretable. <b>Why re-select later?</b> The best clues change when attackers change tactics — that’s the “adaptive” part.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 10. SGD ============================ -->
+<section class="slide" id="s10">
+  <div class="top"><span class="tag green">Step 3 · The classifier</span><h1 class="t">Linear SVM + SGD: draw a line, then nudge it</h1></div>
+  <div class="body">
+    <div class="row" style="gap:22px">
+      <div class="col" style="width:640px;gap:8px">
+        <div class="imgcard"><img class="fig" src="assets/i_boundary.svg"></div>
+        <div class="cap"><b>Illustration (toy data).</b> ① Offline: learn a line that separates legit (green) from phishing (red). ② When phishing URLs shift, small mini-batch updates tilt the line — no need to start over.</div>
+        <div class="card flat" style="padding:12px 16px"><div class="h4">Three SGD variants compared in the paper</div>
+          <div class="row" style="gap:10px;margin-top:8px">
+            <span class="pill">SGD-SVM · hinge loss ★</span><span class="pill a">SGD-LR · log loss</span><span class="pill g">SGD-Perceptron</span></div></div>
+      </div>
+      <div class="col grow" style="gap:12px">
+        <div class="card"><div class="h3">Why “SGD”?</div>
+          <p class="small" style="font-size:16.5px;margin-top:6px"><b>Stochastic Gradient Descent</b> learns from <b>small chunks</b> of data. Think of it as <i>reading one new page</i> instead of <i>re-reading the whole library</i>. That’s what makes <code>partial_fit</code> on a 500-URL mini-batch possible.</p></div>
+        <div class="card"><div class="h4">Paper’s Table 4 — what we used</div>
+          <div style="margin-top:8px">
+            <span class="chip">η₀ = 0.01</span><span class="chip">adaptive learning rate</span><span class="chip">class_weight = balanced</span><span class="chip">early stopping (10 % val.)</span><span class="chip">max_iter = 1000</span><span class="chip">LASSO λ = 0.0001</span><span class="chip">buffer = 1500</span><span class="chip">mini-batch B = 500</span><span class="chip">KS δ = 0.05</span><span class="chip">80:20 split</span><span class="chip">seed = 42</span></div></div>
+        <div class="card" style="background:var(--green-l);border-color:#A9E2CB"><div class="h4 green">Offline → Online</div><p style="font-size:17px;margin-top:4px"><b>Offline:</b> fit once on old labelled URLs (batch).<br><b>Online:</b> same model keeps updating on each new mini-batch.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 11. KS TEST ============================ -->
+<section class="slide" id="s11">
+  <div class="top"><span class="tag red">Step 4 · Drift detection</span><h1 class="t">KS test: “do these two samples look alike?”</h1></div>
+  <div class="body">
+    <div class="row" style="gap:22px">
+      <div class="col" style="width:560px;gap:8px">
+        <div class="imgcard"><img class="fig" src="assets/i_ks.svg"></div>
+        <div class="cap"><b>Illustration.</b> For one feature, plot the cumulative distribution of the reference buffer (blue) and the new batch (red). <b>D</b> = the largest vertical gap. Big gap ⇒ the distributions differ.</div>
+      </div>
+      <div class="col grow" style="gap:12px">
+        <div class="card row" style="gap:14px"><span class="num">1</span><div><div class="b" style="font-size:19px">Reference = recent history</div><p class="small">Rolling buffer of the last <b>1,500</b> labelled URLs.</p></div></div>
+        <div class="card row" style="gap:14px"><span class="num a">2</span><div><div class="b" style="font-size:19px">Test every feature on every mini-batch</div><p class="small">New batch of <b>B = 500</b> URLs vs. the buffer, one KS test per feature.</p></div></div>
+        <div class="card row" style="gap:14px"><span class="num r">3</span><div><div class="b" style="font-size:19px">p-value &lt; δ = 0.05 ⇒ feature has drifted</div><p class="small">“If the two samples came from the same source, a gap this big would be &lt; 5 % likely.”</p></div></div>
+        <div class="card" style="background:var(--amber-l);border-color:#FBD58B"><div class="h4" style="color:#8A5A00">A choice the paper leaves open</div><p style="font-size:16.5px;margin-top:4px">Paper doesn’t say how per-feature alarms become one <i>drift event</i>. <b>Our rule:</b> drift event when <b>≥ 25 % of the active features F*</b> fail the KS test.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 12. ONLINE LOOP ============================ -->
+<section class="slide" id="s12">
+  <div class="top"><span class="tag purple">Step 5 · Putting it together</span><h1 class="t">The online loop: what happens to every mini-batch</h1></div>
+  <div class="body">
+    <div class="row c" style="gap:10px">
+      <div class="flowbox fb-grey" style="width:150px">500 new URLs<small>mini-batch arrives</small></div><div class="arrow">›</div>
+      <div class="flowbox fb-blue" style="width:210px"><span class="num" style="width:26px;height:26px;font-size:14px;margin-right:6px">1</span>Predict first<small>“test-then-train”: score the batch <i>before</i> learning</small></div><div class="arrow">›</div>
+      <div class="flowbox fb-amber" style="width:200px"><span class="num a" style="width:26px;height:26px;font-size:14px;margin-right:6px">2</span>KS test<small>every feature vs. buffer</small></div><div class="arrow">›</div>
+      <div class="flowbox fb-red" style="width:210px"><span class="num r" style="width:26px;height:26px;font-size:14px;margin-right:6px">3</span>Drift event?<small>≥ 25 % of F* drifted</small></div><div class="arrow">›</div>
+      <div class="flowbox fb-green" style="width:190px"><span class="num g" style="width:26px;height:26px;font-size:14px;margin-right:6px">4</span>Learn<small>SGD <i>partial_fit</i> on the batch</small></div>
+    </div>
+    <div class="row" style="margin-top:18px;gap:20px">
+      <div class="card grow" style="border:2px solid #F5B5B7">
+        <div class="row c" style="gap:10px"><span class="pill r">If drift is detected</span><span class="small">— the adaptive part, in 6 steps (<code>framework.py</code>, <code>dynamic.py</code>)</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 22px;margin-top:12px;font-size:17px;line-height:1.35">
+          <div class="row" style="gap:10px"><span class="num r" style="width:28px;height:28px;font-size:14px">a</span><div>Mark drifted features in F* as <b>obsolete</b></div></div>
+          <div class="row" style="gap:10px"><span class="num r" style="width:28px;height:28px;font-size:14px">b</span><div>Re-run <b>LASSO + MI</b> on the 1,500-URL buffer</div></div>
+          <div class="row" style="gap:10px"><span class="num r" style="width:28px;height:28px;font-size:14px">c</span><div>Blend with the stored importance <b>history H</b> (50/50) to damp noise</div></div>
+          <div class="row" style="gap:10px"><span class="num r" style="width:28px;height:28px;font-size:14px">d</span><div>New F* = top quarter again: <b>old features out, new ones in</b></div></div>
+          <div class="row" style="gap:10px"><span class="num r" style="width:28px;height:28px;font-size:14px">e</span><div>Model keeps its weights; removed features are masked to 0 — <b>partial retraining</b>, 3 replay epochs on the buffer</div></div>
+          <div class="row" style="gap:10px"><span class="num r" style="width:28px;height:28px;font-size:14px">f</span><div>Reset the KS reference to the new buffer</div></div>
+        </div>
+      </div>
+      <div class="col" style="width:330px;gap:12px">
+        <div class="card"><div class="h4">Why “predict first”?</div><p class="small" style="font-size:16px;margin-top:4px">It’s the honest way to measure a streaming model: every URL is scored by a model that has <b>not</b> seen it yet (prequential evaluation).</p></div>
+        <div class="card" style="background:var(--amber-l);border-color:#FBD58B"><div class="h4" style="color:#8A5A00">Our design choices</div><p class="small" style="font-size:15px;margin-top:4px">25 % trigger · history weight 0.5 · 3 replay epochs · inputs clipped to ±10 · classifier kept in full 58-feature space with F* as a mask.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 13. DATA & EXPERIMENTS ============================ -->
+<section class="slide" id="s13">
+  <div class="top"><span class="tag amber">What we ran</span><h1 class="t">Data and the five experiments</h1></div>
+  <div class="body">
+    <div class="row" style="gap:20px">
+      <div class="card grow" style="padding:16px 20px">
+        <div class="h3" style="margin-bottom:8px">Datasets</div>
+        <table class="t" style="font-size:15.5px">
+          <tr><th>Corpus</th><th class="n">URLs</th><th>Role</th></tr>
+          <tr><td class="b">PhiUSIIL</td><td class="n">235k</td><td>paper’s largest corpus (Table 7)</td></tr>
+          <tr><td class="b">Kaggle</td><td class="n">21k</td><td>balanced subset (Table 6)</td></tr>
+          <tr><td class="b">ISCX-URL-2016</td><td class="n">15.4k</td><td>authors’ 79 pre-computed features only (Table 5)</td></tr>
+          <tr><td class="b">Hannousse 2021</td><td class="n">11.4k</td><td>raw URLs, used <i>in place of</i> ISCX where strings are needed</td></tr>
+          <tr><td class="b">Combined</td><td class="n">263k</td><td>PhiUSIIL + Kaggle + Hannousse, de-duplicated</td></tr>
+          <tr style="background:var(--red-l)"><td class="b red">PhishTank stream</td><td class="n b">12,888</td><td>live verified phishing, <b>Jun 2024 – Jan 2025</b> (paper’s window), chronological, + equal held-out benign</td></tr>
+        </table>
+      </div>
+      <div class="col" style="width:455px;gap:10px">
+        <div class="card" style="padding:14px 18px"><div class="row c" style="gap:12px"><span class="num">1</span><div><b>Offline</b> · Tables 5–7, Fig. 6<div class="small">SGD-SVM / LR / Perceptron per corpus</div></div></div></div>
+        <div class="card" style="padding:14px 18px"><div class="row c" style="gap:12px"><span class="num r">2</span><div><b>Online stream</b> · Sec. 5 / Figs. 8–9<div class="small">S1 PhishTank · S2 strong cross-corpus shift</div></div></div></div>
+        <div class="card" style="padding:14px 18px"><div class="row c" style="gap:12px"><span class="num g">3</span><div><b>Ablation</b> · Table 9<div class="small">adaptive vs. static F*, N = 100 / 500 / 1000</div></div></div></div>
+        <div class="card" style="padding:14px 18px"><div class="row c" style="gap:12px"><span class="num a">4</span><div><b>Runtime</b> · Tables 10–11<div class="small">latency; incremental vs. batch retraining</div></div></div></div>
+        <div class="card" style="padding:14px 18px"><div class="row c" style="gap:12px"><span class="num p">5</span><div><b>Drift analysis</b> · Figs. 4, 5, 7, Table 8<div class="small">KDE, co-occurrence, KS, feature evolution</div></div></div></div>
+      </div>
+    </div>
+    <div class="card flat" style="margin-top:12px;padding:10px 16px"><span class="b">Seeds &amp; setup:</span> positive class = phishing · 80:20 stratified split, seed 42 · streams: 5 seeds (mean ± std) · mini-batch B = 500 · PhishTank snapshot of 2026-11-06 is stored with the code.</div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 14. OFFLINE RESULTS ============================ -->
+<section class="slide" id="s14">
+  <div class="top"><span class="tag red">Results 1 · Offline phase</span><h1 class="t">SGD-SVM is the best linear model, as in the paper</h1></div>
+  <div class="body">
+    <div class="row" style="gap:22px">
+      <div class="col" style="width:640px;gap:8px">
+        <div class="imgcard"><img class="fig" src="assets/c_offline_variants.svg"></div>
+        <div class="cap"><b>Our Fig. 6 analogue.</b> Test accuracy of the three SGD variants on LASSO+MI features. SVM (blue) is best or tied on every corpus.</div>
+      </div>
+      <div class="col grow" style="gap:12px">
+        <div class="card" style="padding:14px 18px"><div class="h4">SGD-SVM accuracy: this study vs. paper</div>
+          <table class="t" style="font-size:16px;margin-top:4px">
+            <tr><th>Corpus</th><th class="n">Ours</th><th class="n">Paper</th><th></th></tr>
+            <tr><td class="b">PhiUSIIL (T7)</td><td class="n b">99.38</td><td class="n">98.78</td><td><span class="ok">✓</span></td></tr>
+            <tr><td class="b">ISCX (T5)</td><td class="n b">90.83</td><td class="n">99.02</td><td><span class="part">≈</span></td></tr>
+            <tr><td class="b">Kaggle (T6)</td><td class="n b">73.81</td><td class="n">99.00</td><td><span class="part">≈</span></td></tr>
+            <tr><td class="b">Combined (F6)</td><td class="n b">93.58</td><td class="n">99.85</td><td><span class="part">≈</span></td></tr>
+          </table></div>
+        <div class="row" style="gap:12px">
+          <div class="kpi grow" style="background:var(--green-l);border-color:#A9E2CB"><div class="v green">99.38%</div><div class="l">PhiUSIIL accuracy — beats the paper’s 98.78 %; FPR only 0.004 %</div></div>
+        </div>
+        <div class="card" style="background:var(--amber-l);border-color:#FBD58B;padding:12px 16px"><b style="color:#8A5A00">≈ means:</b> same ordering of methods, lower absolute level. Next slide: why.</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 15. WHY THE GAP ============================ -->
+<section class="slide" id="s15">
+  <div class="top"><span class="tag red">Results 1 · Why?</span><h1 class="t">Why our Kaggle / ISCX / combined numbers are lower</h1></div>
+  <div class="body">
+    <div class="row" style="gap:22px">
+      <div class="col" style="width:620px;gap:8px">
+        <div class="imgcard"><img class="fig" src="assets/c_gap.svg"></div>
+        <div class="cap">Same learner, different feature choice or model. Using all features lifts SGD-SVM (ISCX 90.8 → <b>96.1 %</b>, Kaggle 73.8 → <b>79.8 %</b>); a random forest on the <i>same</i> F* reaches <b>98.3 %</b> on ISCX.</div>
+      </div>
+      <div class="col grow" style="gap:12px">
+        <div class="card" style="padding:14px 18px"><div class="row" style="gap:12px"><span class="num">1</span><div><b>Level depends on the feature set</b><div class="small">Only the top-quarter F* is used; the paper doesn’t publish its exact feature definitions.</div></div></div></div>
+        <div class="card" style="padding:14px 18px"><div class="row" style="gap:12px"><span class="num a">2</span><div><b>Data versions &amp; cleaning differ</b><div class="small">Paper gives no exact corpus versions or URL pre-processing; ISCX was available to us only as features.</div></div></div></div>
+        <div class="card" style="padding:14px 18px"><div class="row c" style="gap:14px"><span class="num r">3</span><div style="flex:1"><b>Corpora look very different</b><div class="small">PhiUSIIL’s benign URLs are mostly bare domains → easy. Combined model, per source:</div></div></div>
+          <div style="width:300px;margin:0 auto"><img class="fig" src="assets/c_per_source.svg" style="width:100%"></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 16. DRIFT EVIDENCE KDE ============================ -->
+<section class="slide" id="s16">
+  <div class="top"><span class="tag red">Results 2 · Drift is real</span><h1 class="t">Old vs. new phishing URLs: paper’s plots and ours</h1></div>
+  <div class="body hi">
+    <div class="row" style="gap:20px">
+      <div class="col grow" style="gap:6px">
+        <div class="pill" style="align-self:flex-start">Paper · Fig. 4 (KDE: old blue, new red)</div>
+        <div class="imgcard" style="height:468px;display:flex;align-items:center;justify-content:center"><img class="fig" src="assets/paper_kde_a.png" style="height:448px;width:auto"></div>
+      </div>
+      <div class="col grow" style="gap:6px">
+        <div class="pill g" style="align-self:flex-start">Ours · same features (old gray-blue, new orange)</div>
+        <div class="imgcard" style="height:468px;display:flex;align-items:center;justify-content:center"><img class="fig" src="assets/ours_kde_6.png" style="height:448px;width:auto"></div>
+      </div>
+      <div class="col" style="width:290px;gap:12px">
+        <div class="card" style="padding:14px 16px"><div class="h4">What both show</div>
+          <ul style="margin:8px 0 0 18px;font-size:16px;line-height:1.4"><li>New URLs concentrate in <b>narrower, different</b> ranges — e.g. domain length &amp; entropy.</li><li>Bait words <code>has_free</code>, <code>has_secure</code> are <b>rarer</b> in new URLs.</li></ul></div>
+        <div class="kpi" style="background:var(--red-l);border-color:#F5B5B7"><div class="v red">34 / 58</div><div class="l">features differ significantly (KS, δ = 0.05) — the paper’s core premise holds on real June 2024–Jan 2025 data</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 17. KS STATS ============================ -->
+<section class="slide" id="s17">
+  <div class="top"><span class="tag red">Results 2 · Drivers</span><h1 class="t">KS statistic per feature (paper Fig. 7)</h1></div>
+  <div class="body hi">
+    <div class="row" style="gap:20px">
+      <div class="col" style="width:500px;gap:6px">
+        <div class="pill g" style="align-self:flex-start">Ours · 1,500 old vs 500 new phishing URLs</div>
+        <div class="imgcard" style="text-align:center"><img class="fig" src="assets/c_ks_bars.svg" style="width:100%;height:470px;object-fit:contain"></div>
+      </div>
+      <div class="col grow" style="gap:12px">
+        <div class="pill" style="align-self:flex-start">Paper · Fig. 7 (KS statistic over time)</div>
+        <div class="imgcard" style="text-align:center"><img class="fig" src="assets/paper_fig7_ks.png" style="width:100%;height:290px;object-fit:contain"></div>
+        <div class="card" style="padding:14px 18px"><div class="h4">Reading it</div>
+          <ul style="margin:6px 0 0 18px;font-size:15.5px;line-height:1.35"><li>Longer bar = bigger shift; <b>red = drifted</b>, gray = stable.</li><li>Biggest shifts: host entropy, host label &amp; domain length, https/http, path &amp; URL length — the <b>length / structure</b> family the paper also reports.</li></ul></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 18. TABLE 8 FEATURE EVOLUTION ============================ -->
+<section class="slide" id="s18">
+  <div class="top"><span class="tag red">Results 2 · Adaptation</span><h1 class="t">Selected features change after drift (paper Table 8)</h1></div>
+  <div class="body">
+    <div class="row" style="gap:10px;align-items:stretch">
+      <div class="card" style="width:330px;border-top:5px solid #8A97AD;padding:16px 16px"><div class="h4">Initial · 15 features</div><div style="margin-top:8px;line-height:1"><span class="chip keep">url_length</span><span class="chip keep">domain_length</span><span class="chip keep">path_length</span><span class="chip keep">token_count</span><span class="chip keep">num_subdirectories</span><span class="chip keep">special_char_count</span><span class="chip keep">number_count</span><span class="chip keep">num_slashes</span><span class="chip keep">non_alphanumeric_chars</span><span class="chip keep">num_delimiters_path</span><span class="chip keep">digit_ratio</span><span class="chip keep">num_hyphens</span><span class="chip">num_dots</span><span class="chip">has_https</span><span class="chip">scheme_http</span></div></div>
+      <div class="arrow">›</div>
+      <div class="card grow" style="border-top:5px solid var(--red);padding:16px 16px"><div class="h4 red">Drift stage 1</div><div style="margin-top:8px"><span class="chip add">+ entropy</span><span class="chip add">+ host_entropy</span><span class="chip add">+ longest_host_label_length</span><br><span class="chip del">has_https</span><span class="chip del">num_dots</span><span class="chip del">scheme_http</span></div><p class="small" style="margin-top:8px">Host-name <b>randomness</b> becomes a key clue.</p></div>
+      <div class="arrow">›</div>
+      <div class="card grow" style="border-top:5px solid var(--red);padding:16px 16px"><div class="h4 red">Stage 2 · 500 URLs</div><div style="margin-top:8px"><span class="chip add">+ num_ampersand</span><br><span class="chip del">num_hyphens</span></div><p class="small" style="margin-top:8px">Query-string symbols (<code>&amp;</code>) start to matter.</p></div>
+      <div class="arrow">›</div>
+      <div class="card grow" style="border-top:5px solid var(--red);padding:16px 16px"><div class="h4 red">Stage 3 · 1,000 URLs</div><div style="margin-top:8px"><span class="chip add">+ num_digits_query</span><br><span class="chip del">num_ampersand</span></div><p class="small" style="margin-top:8px">Digits <i>inside the query</i> replace the symbol count.</p></div>
+    </div>
+    <div class="row" style="margin-top:14px;gap:20px">
+      <div class="card grow" style="padding:16px 20px"><div class="h3">What this shows</div>
+        <p style="margin-top:6px;font-size:17.5px">Each drift event swaps a few features: <span class="pill g">+ new clue</span> in, <span class="pill r">old clue</span> out. In our run the set moves toward <b>host-name randomness</b> and <b>query-string</b> features — consistent with the paper’s story that newer phishing relies on query obfuscation.</p></div>
+      <div class="col" style="width:300px;gap:10px">
+        <div class="kpi s"><div class="l">avg. drift events, 25,776-URL PhishTank stream</div><div class="v blue">28.6</div></div>
+        <div class="kpi s"><div class="l">drift events, cross-corpus stream</div><div class="v blue">7</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 19. S1 STREAM ============================ -->
+<section class="slide" id="s19">
+  <div class="top"><span class="tag green">Results 3 · Stream S1</span><h1 class="t">Online learning beats a frozen model by +5 points</h1></div>
+  <div class="body hi">
+    <div class="row" style="gap:20px">
+      <div class="col grow" style="gap:8px">
+        <div class="imgcard"><img class="fig" src="assets/c_stream_s1.svg"></div>
+        <div class="cap"><b>Prequential accuracy</b> per 500-URL batch, 25,776 URLs, Jun 2024 – Jan 2025 (seed 42). Green ticks = KS drift events.</div>
+      </div>
+      <div class="col" style="width:300px;gap:10px">
+        <div class="kpi s"><div class="l">Frozen offline model</div><div class="v" style="color:#8A97AD">92.63%</div></div>
+        <div class="kpi s"><div class="l">Online SGD, static F*</div><div class="v blue">97.77%</div></div>
+        <div class="kpi s" style="background:var(--green-l);border-color:#A9E2CB"><div class="l">Proposed (adaptive)</div><div class="v green">97.80%</div></div>
+        <div class="kpi s"><div class="l">Periodic batch retraining</div><div class="v amber">97.31%</div></div>
+      </div>
+    </div>
+    <div class="row" style="gap:16px;margin-top:12px">
+      <div class="card flat grow" style="padding:10px 16px"><span class="ok">✓</span> Online learning <b>+5.1 pts</b> over frozen, with far lower variance (± 0.05 vs ± 6.4).</div>
+      <div class="card flat grow" style="padding:10px 16px"><span class="part">≈</span> Adaptive ≈ static here: this shift is <b>gentle</b>. Adaptation matters more under big shifts →</div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 20. S2 STRESS TEST ============================ -->
+<section class="slide" id="s20">
+  <div class="top"><span class="tag green">Results 3 · Stream S2</span><h1 class="t">Under big shifts, adaptive selection really helps</h1></div>
+  <div class="body hi">
+    <div class="row" style="gap:20px">
+      <div class="col grow" style="gap:8px">
+        <div class="imgcard"><img class="fig" src="assets/c_stream_s2.svg"></div>
+        <div class="cap"><b>S2:</b> train on PhiUSIIL only → stream held-out PhiUSIIL (no drift) → Kaggle (drift 1) → Hannousse (drift 2). Shading = where the URLs come from; green ticks = KS drift events.</div>
+      </div>
+      <div class="col" style="width:300px;gap:10px">
+        <div class="kpi s"><div class="l">Frozen offline model</div><div class="v" style="color:#8A97AD">55.5%</div></div>
+        <div class="kpi s"><div class="l">Online SGD, static F*</div><div class="v blue">70.5%</div></div>
+        <div class="kpi s" style="background:var(--green-l);border-color:#A9E2CB"><div class="l">Proposed (adaptive)</div><div class="v green">73.2%</div></div>
+        <div class="kpi s"><div class="l">Periodic batch retraining</div><div class="v amber">70.0%</div></div>
+      </div>
+    </div>
+    <div class="row" style="gap:16px;margin-top:12px">
+      <div class="card flat grow" style="padding:10px 16px"><span class="ok">✓</span> Frozen collapses (≈ 48 % on Kaggle); online recovers; <b>adaptive is best</b>: +2.7 pts over static, +15 over frozen.</div>
+      <div class="card flat grow" style="padding:10px 16px"><span class="ok">✓</span> Periodic batch (orange) must <b>wait 5,000 URLs</b> before it reacts — see its long dip after the first shift.</div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 21. ABLATION ============================ -->
+<section class="slide" id="s21">
+  <div class="top"><span class="tag green">Results 4 · Ablation (Table 9)</span><h1 class="t">Does adaptive feature selection add value?</h1></div>
+  <div class="body hi">
+    <div class="row" style="gap:20px">
+      <div class="col" style="width:600px;gap:6px">
+        <div class="pill" style="align-self:flex-start">F1 vs. number of labelled new URLs (PhishTank target)</div>
+        <div class="imgcard" style="text-align:center"><img class="fig" src="assets/c_ablation_f1.svg" style="width:100%;height:330px;object-fit:contain"></div>
+        <div class="cap">Solid = ours (10 seeds, ± std). Dashed = paper. Our <b>adaptive</b> F1 (96.1 / 96.9 / 96.9) is within <b>0.1–1.5 pts</b> of the paper’s (96.2 / 97.2 / 98.3).</div>
+      </div>
+      <div class="col grow" style="gap:6px">
+        <div class="pill g" style="align-self:flex-start">Accuracy at N = 500, three targets</div>
+        <div class="imgcard" style="text-align:center"><img class="fig" src="assets/c_ablation_acc.svg" style="width:100%;height:330px;object-fit:contain"></div>
+        <div class="cap"><b>Bigger shift ⇒ bigger gain:</b> +0.7 pts on PhishTank, +4.1 on Kaggle, +7.0 on Hannousse. FPR at N ≥ 500 also drops (6.8 % → 5.4 %).</div>
+      </div>
+    </div>
+    <div class="card flat" style="margin-top:10px;padding:10px 16px"><span class="part">≈</span> <b>Caveat:</b> our static baseline is already stronger than the paper’s (96.2 vs 92.3 F1 at N = 100), so the static→adaptive gap on PhishTank is smaller than the paper’s.</div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 22. RUNTIME ============================ -->
+<section class="slide" id="s22">
+  <div class="top"><span class="tag amber">Results 5 · Runtime (Tables 10–11)</span><h1 class="t">Real-time per URL, and cheap to update</h1></div>
+  <div class="body hi">
+    <div class="row" style="gap:20px">
+      <div class="col" style="width:330px;gap:12px">
+        <div class="kpi" style="background:var(--green-l);border-color:#A9E2CB"><div class="v green" style="font-size:54px">0.16 ms</div><div class="l">per URL: parse → 58 features → SGD-SVM score (1 CPU thread, 6,000 URLs). Paper: 12.4–15.2 ms on different hardware.</div></div>
+        <div class="kpi"><div class="v amber" style="font-size:46px">2,000×+</div><div class="l">cheaper to update the model with 100–1,000 URLs than to retrain on 210k URLs (paper: 15.9–33.7×)</div></div>
+        <div class="kpi"><div class="v blue" style="font-size:46px">12.9×</div><div class="l">cheaper to re-select features incrementally (213 ms vs 2.7 s; paper: 30.9×)</div></div>
+      </div>
+      <div class="col grow" style="gap:8px">
+        <div class="imgcard"><img class="fig" src="assets/c_runtime.svg"></div>
+        <div class="cap">Mean of 10 runs, log scale. Batch retraining = LASSO + MI + full SGD fit on 210,598 + N URLs.</div>
+        <div class="card flat" style="padding:10px 16px"><span class="ok">✓</span> Same conclusion as the paper: <b>incremental ≪ retraining</b>. Absolute numbers differ (hardware, implementation, and we compare against our own batch baseline).</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 23. SCORECARD ============================ -->
+<section class="slide" id="s23">
+  <div class="top"><span class="tag purple">Scorecard</span><h1 class="t">Paper’s claims vs. what we reproduced</h1></div>
+  <div class="body hi">
+    <table class="t tight" style="font-size:15px">
+      <tr><th style="width:46%">Paper claim / experiment</th><th>Our result</th><th style="width:130px">Status</th></tr>
+      <tr><td>SGD-SVM is the best of the three SGD variants (T5–7, F6)</td><td>best / tied on all 5 corpora</td><td class="ok" style="white-space:nowrap">✓ reproduced</td></tr>
+      <tr><td>PhiUSIIL accuracy (T7: 98.78 %)</td><td><b>99.38 %</b>, precision 99.99 %, FPR 0.004 %</td><td class="ok" style="white-space:nowrap">✓ reproduced</td></tr>
+      <tr><td>URL feature distributions drift between old and new (F4, F7)</td><td>34 / 58 features drift (KS, δ = 0.05); same feature families</td><td class="ok" style="white-space:nowrap">✓ reproduced</td></tr>
+      <tr><td>Selected feature set evolves after drift (T8)</td><td>additions / removals logged at every drift event</td><td class="ok" style="white-space:nowrap">✓ reproduced</td></tr>
+      <tr><td>Online learning beats a frozen model</td><td>+5.1 pts (PhishTank), +15.0 pts (cross-corpus)</td><td class="ok" style="white-space:nowrap">✓ reproduced</td></tr>
+      <tr><td>Adaptive features raise F1 (T9: 96.22 / 97.15 / 98.30)</td><td>96.08 / 96.90 / 96.85 — gain clearest under big shifts</td><td class="ok" style="white-space:nowrap">✓ close</td></tr>
+      <tr><td>Incremental update ≪ batch retraining (T11: 15.9–33.7×)</td><td>2,140–2,770× (update), 12.9× (features)</td><td class="ok" style="white-space:nowrap">✓ reproduced</td></tr>
+      <tr><td>Real-time per-URL latency (T10: 12.4–15.2 ms)</td><td>0.16 ms</td><td class="ok" style="white-space:nowrap">✓ real-time</td></tr>
+      <tr><td>≈ 99 % accuracy on ISCX / Kaggle / combined (T5, T6, F6: 99.85 %, FPR 0.067 %)</td><td>90.8 % / 73.8 % / 93.6 % (FPR 6.2 %)</td><td class="part" style="white-space:nowrap">≈ lower level</td></tr>
+    </table>
+    <div class="card" style="margin-top:10px;background:var(--navy);border:none;color:#fff;padding:12px 22px;font-size:17px"><b>Bottom line:</b> the method and every <i>qualitative</i> finding reproduce. The paper’s ≈ 99 % absolute levels depend on unpublished data versions and feature definitions we could not recover.</div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 24. DEMO ============================ -->
+<section class="slide" id="s24">
+  <div class="top"><span class="tag amber">Demo</span><h1 class="t">PhishCheck: the detector running in a browser</h1></div>
+  <div class="body hi">
+    <div class="row" style="gap:20px">
+      <div class="col" style="width:700px;gap:8px">
+        <div class="pill r" style="align-self:flex-start">Phishing-style URL → flagged</div><div class="imgcard"><img class="fig" src="assets/demo_phish.png"></div>
+        <div class="pill g" style="align-self:flex-start;margin-top:4px">Legitimate URL → passes</div><div class="imgcard"><img class="fig" src="assets/demo_legit.png"></div>
+      </div>
+      <div class="col grow" style="gap:12px">
+        <div class="card"><div class="h4">How it works</div>
+          <ol style="margin:8px 0 0 20px;font-size:17px;line-height:1.45"><li>Python trains an SGD-SVM and exports its weights to <code>model.json</code>.</li><li>A TypeScript port of the feature extractor runs <b>in your browser</b>.</li><li>Score = weights · features → verdict + probability.</li></ol>
+          <p class="small" style="margin-top:8px"><code>Source_Code/web/</code> (Next.js). The URL text never leaves your machine.</p></div>
+        <div class="card" style="background:var(--amber-l);border-color:#FBD58B"><b style="color:#8A5A00">Honest note.</b> <span style="font-size:16.5px">Bare-domain legitimate URLs sit near the decision boundary: github.com scores 48 % (passes), but wikipedia.org scored 51.8 % — a false alarm. A URL-only model has limited context; the paper itself lists this limitation.</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 25. TAKEAWAYS ============================ -->
+<section class="slide" id="s25">
+  <div class="top"><span class="tag purple">Wrap-up</span><h1 class="t">Takeaways, limitations and what’s next</h1></div>
+  <div class="body">
+    <div class="row" style="gap:16px">
+      <div class="card grow" style="border-top:5px solid var(--green)"><div class="h3 green">What we learned</div>
+        <ul style="margin:10px 0 0 20px;font-size:17.5px;line-height:1.45"><li>Phishing URLs <b>really do drift</b> — 34 of 58 features shifted.</li><li>A frozen model <b>decays</b> (99 % → 48 %); online learning recovers it.</li><li>Adaptive feature re-selection <b>helps most under big shifts</b>.</li><li>Incremental updates are <b>milliseconds</b>, not seconds.</li></ul></div>
+      <div class="card grow" style="border-top:5px solid var(--amber)"><div class="h3" style="color:#B77700">Limitations</div>
+        <ul style="margin:10px 0 0 20px;font-size:17.5px;line-height:1.45"><li>URL-only features miss attacks with <b>clean-looking URLs</b>.</li><li>Absolute accuracy depends heavily on <b>dataset &amp; feature versions</b>.</li><li>Drift rule (25 %), history weight, replay epochs are <b>our choices</b>.</li><li>PhishTank has only phishing; benign side of the stream is held-out old URLs.</li></ul></div>
+      <div class="card grow" style="border-top:5px solid var(--blue)"><div class="h3 blue">Future work</div>
+        <ul style="margin:10px 0 0 20px;font-size:17.5px;line-height:1.45"><li>Selective <b>lightweight content checks</b> for ambiguous URLs (paper’s own suggestion).</li><li>Real live-labelled feed &amp; delayed-label handling.</li><li>Stronger / non-linear online learners.</li></ul></div>
+    </div>
+    <div class="card" style="margin-top:16px;background:var(--navy);border:none;color:#fff;padding:20px 28px;font-size:22px;line-height:1.4;font-weight:600">We implemented the full pipeline from the paper’s description, reproduced its <span style="color:#7FE0B5">qualitative findings</span>, and quantified honestly where the <span style="color:#FFC46B">absolute numbers differ and why</span>.</div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Krishnan &amp; Naik, Security and Privacy 8(4), e70057 (2025)</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ 26. THANK YOU ============================ -->
+<section class="slide dark" id="s26">
+  <div style="position:absolute;left:56px;top:70px;font-size:64px;font-weight:900;letter-spacing:-.03em">Thank you — questions?</div>
+  <div style="position:absolute;left:56px;top:160px;font-size:23px;color:#B7C5E6">Pratham Garg · Sumit Sharma · Vivaan Garg — CS 552 Group Project</div>
+  <div style="position:absolute;left:56px;right:56px;top:240px;display:flex;gap:22px">
+    <div style="flex:1;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);padding:22px 26px">
+      <div style="font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8FB0FF">Assigned paper</div>
+      <div style="font-size:18.5px;line-height:1.45;margin-top:8px;color:#EAF1FF">Sruthi Krishnan and Manohar Naik S. “An Efficient Framework for Phishing URL Detection Using Adaptive Drift-Aware Feature Monitoring and Online Learning.” <i>Security and Privacy</i>, vol. 8, no. 4, article e70057, 2025. John Wiley &amp; Sons Ltd. DOI: 10.1002/spy2.70057</div>
+      <div style="font-size:15px;margin-top:8px;color:#B7C5E6;word-break:break-all">https://onlinelibrary.wiley.com/doi/full/10.1002/spy2.70057</div>
+    </div>
+    <div style="width:430px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);padding:22px 26px">
+      <div style="font-size:13px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#8FB0FF">Reproduce everything</div>
+      <div style="font-family:'SF Mono',Menlo,monospace;font-size:16px;line-height:1.7;margin-top:8px;color:#CFE0FF">cd Source_Code<br>pip install -r requirements.txt<br>make test &nbsp;&nbsp;# 16 unit tests<br>make all &nbsp;&nbsp;&nbsp;# data → exp1…5 → results</div>
+      <div style="font-size:14.5px;margin-top:10px;color:#B7C5E6">Code: <code style="background:rgba(255,255,255,.14);color:#fff">Source_Code/</code> · Results: <code style="background:rgba(255,255,255,.14);color:#fff">Experimental_Results/</code> · Demo: <code style="background:rgba(255,255,255,.14);color:#fff">Source_Code/web/</code></div>
+    </div>
+  </div>
+  <div style="position:absolute;left:56px;right:56px;top:520px;display:flex;gap:16px">
+    <div style="flex:1;text-align:center;border-radius:16px;background:rgba(255,255,255,.07);padding:16px"><div style="font-size:36px;font-weight:900;color:#7FE0B5">99.38%</div><div style="font-size:14px;color:#B7C5E6">PhiUSIIL accuracy</div></div>
+    <div style="flex:1;text-align:center;border-radius:16px;background:rgba(255,255,255,.07);padding:16px"><div style="font-size:36px;font-weight:900;color:#7FE0B5">+15 pts</div><div style="font-size:14px;color:#B7C5E6">online vs. frozen under big shift</div></div>
+    <div style="flex:1;text-align:center;border-radius:16px;background:rgba(255,255,255,.07);padding:16px"><div style="font-size:36px;font-weight:900;color:#7FE0B5">34 / 58</div><div style="font-size:14px;color:#B7C5E6">features drift old → new</div></div>
+    <div style="flex:1;text-align:center;border-radius:16px;background:rgba(255,255,255,.07);padding:16px"><div style="font-size:36px;font-weight:900;color:#7FE0B5">2,000×+</div><div style="font-size:14px;color:#B7C5E6">cheaper than batch retraining</div></div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Group Project</span><span class="pg"></span></div>
+</section>
+
+<!-- ============================ APPENDIX ============================ -->
+<section class="slide" id="a1">
+  <div class="top"><span class="tag">Appendix A</span><h1 class="t">Algorithm 1 (paper) ↔ our code</h1></div>
+  <div class="body">
+    <div class="row" style="gap:20px">
+      <div class="card grow" style="padding:16px 20px">
+        <div class="h4">Paper’s Algorithm 1 — adaptive feature selection</div>
+        <div style="font-family:'SF Mono',Menlo,monospace;font-size:14.5px;line-height:1.65;margin-top:8px;color:#243455">
+          <b>Step 1  Initial selection</b><br>
+          &nbsp;&nbsp;w = |Lasso.coef|  &nbsp;&nbsp;I = MI(X_B, y_B)  &nbsp;&nbsp;S = w + I<br>
+          <b>Step 2  Drift monitoring</b><br>
+          &nbsp;&nbsp;<b>while</b> new batch arrives:<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;<b>for</b> each f in F*: KS test → if drift: mark f obsolete, remove<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;τ = Percentile(S, 75)  &nbsp;&nbsp;F* = {f : S(f) ≥ τ}<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;store S in history H<br>
+          <b>return</b> F*</div>
+      </div>
+      <div class="card" style="width:560px;padding:16px 20px">
+        <div class="h4">Our implementation</div>
+        <table class="t" style="font-size:15px;margin-top:4px">
+          <tr><td><code>w, mi = _score(X, y)</code></td><td>Lasso(α=1e-4, 1000 it.) + <i>mutual_info_classif</i> on standardised X</td></tr>
+          <tr><td><code>S = w + mi</code></td><td><code>fit()</code> — initial F*</td></tr>
+          <tr><td><code>ks_2samp</code></td><td><code>KSDriftMonitor.test()</code> per feature</td></tr>
+          <tr><td><code>np.percentile(S, 75)</code></td><td><code>_apply_threshold()</code></td></tr>
+          <tr><td><code>history_</code></td><td><code>update()</code>: S = 0.5·S_new + 0.5·S_prev</td></tr>
+          <tr><td>obsolete / added</td><td>returned by <code>update()</code> → logged as Table 8</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Appendix</span><span class="pg"></span></div>
+</section>
+
+<section class="slide" id="a2">
+  <div class="top"><span class="tag">Appendix B</span><h1 class="t">Feature co-occurrence networks (paper Fig. 5)</h1></div>
+  <div class="body hi">
+    <div class="row" style="gap:20px">
+      <div class="col grow" style="gap:6px"><div class="pill" style="align-self:flex-start">Paper · (a) malicious, (b) benign</div><div class="imgcard"><img class="fig" src="assets/paper_fig5_cooc.png"></div></div>
+      <div class="col grow" style="gap:6px"><div class="pill g" style="align-self:flex-start">Ours · (a) malicious, (b) benign</div><div class="imgcard"><img class="fig" src="assets/ours_fig5_cooccurrence.png"></div></div>
+    </div>
+    <div class="card" style="margin-top:14px;padding:14px 20px"><b>Reading it:</b> each node is a selected feature; edge thickness = how often two features are “on” together. <b>Paper:</b> malicious URLs form a dense cluster among security-sensitive features (login, admin, verify, file extension); benign links are more evenly spread. <b>Ours:</b> malicious URLs show far thicker and more numerous edges than benign ones — phishing URLs tend to trip several signals at once. (Our F* has different members, so nodes differ.)</div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Appendix</span><span class="pg"></span></div>
+</section>
+
+<section class="slide" id="a3">
+  <div class="top"><span class="tag">Appendix C</span><h1 class="t">What the paper compares against (paper Fig. 10)</h1></div>
+  <div class="body hi">
+    <div class="row" style="gap:20px">
+      <div class="imgcard" style="width:640px;height:545px"><img class="fig" src="assets/paper_fig10_compare.png" style="width:100%;height:100%;object-fit:contain"></div>
+      <div class="col grow" style="gap:12px">
+        <div class="card"><div class="h4">Paper’s argument</div><p style="font-size:17px;margin-top:6px">Highest accuracy (99.85 %) <b>and</b> lowest FPR (0.067 %) among 12 published methods — while using only URL strings and updating online.</p></div>
+        <div class="card" style="background:var(--amber-l);border-color:#FBD58B"><div class="h4" style="color:#8A5A00">Our view</div><p style="font-size:17px;margin-top:6px">We did not re-run the other 12 methods. On our data, a batch random forest on the same features beats SGD-SVM offline (e.g. 98.3 % vs 90.8 % on ISCX) — the paper’s advantage is <b>adaptivity and cost</b>, not raw offline accuracy.</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>CS 552</b> · Appendix</span><span class="pg"></span></div>
+</section>
+
+</body></html>
